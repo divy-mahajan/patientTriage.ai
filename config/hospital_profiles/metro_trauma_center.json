@@ -1,0 +1,162 @@
+{
+  "hospital_id": "metro_trauma_center",
+  "name": "Metro Regional Trauma & Medical Center",
+  "emergency_level": "Comprehensive Level 1 Trauma Center",
+  "address": "1000 University Ave, Central City",
+  "summary": {
+    "total_beds": 36,
+    "available_beds": 12,
+    "occupied_beds": 18,
+    "cleaning_beds": 4,
+    "reserved_beds": 1,
+    "unavailable_beds": 1
+  },
+  "waiting_room": {
+    "capacity": 70,
+    "current_occupancy": 38,
+    "overflow_limit": 85,
+    "estimated_wait_time_minutes": 55
+  },
+  "units": [
+    {
+      "unit_id": "trauma_resus",
+      "unit_name": "Trauma Resuscitation Center",
+      "floor": 1,
+      "total_beds": 6,
+      "available_beds": 2,
+      "occupied_beds": 3,
+      "cleaning_beds": 1,
+      "reserved_beds": 0,
+      "unavailable_beds": 0,
+      "default_capabilities": [
+        "ventilator",
+        "rapid_transfusion",
+        "surgical_lighting",
+        "fluoroscopy_c_arm",
+        "invasive_monitoring"
+      ],
+      "beds": [
+        {"bed_id": "TR-1", "bed_label": "Trauma Bay 1", "status": "occupied", "equipment": ["ventilator", "rapid_transfusion", "fluoroscopy_c_arm"], "current_patient_id": "P-9001", "assigned_doctor_id": "DOC-002", "notes": "Gunshot wound exploratory prep", "last_status_change": "2026-08-25T15:10:00Z"},
+        {"bed_id": "TR-2", "bed_label": "Trauma Bay 2", "status": "occupied", "equipment": ["ventilator", "rapid_transfusion"], "current_patient_id": "P-9002", "assigned_doctor_id": "DOC-002", "notes": "High speed rollover collision", "last_status_change": "2026-08-25T15:30:00Z"},
+        {"bed_id": "TR-3", "bed_label": "Trauma Bay 3", "status": "available", "equipment": ["ventilator", "rapid_transfusion", "surgical_lighting"], "current_patient_id": null, "assigned_doctor_id": null, "notes": "Prepped for major trauma", "last_status_change": "2026-08-25T16:00:00Z"},
+        {"bed_id": "TR-4", "bed_label": "Trauma Bay 4", "status": "available", "equipment": ["ventilator", "rapid_transfusion"], "current_patient_id": null, "assigned_doctor_id": null, "notes": "Ready", "last_status_change": "2026-08-25T16:05:00Z"},
+        {"bed_id": "TR-5", "bed_label": "Trauma Bay 5", "status": "cleaning", "equipment": ["ventilator", "rapid_transfusion"], "current_patient_id": null, "assigned_doctor_id": null, "notes": "Biohazard terminal clean", "last_status_change": "2026-08-25T16:25:00Z"},
+        {"bed_id": "TR-6", "bed_label": "Trauma Bay 6", "status": "occupied", "equipment": ["ventilator", "rapid_transfusion"], "current_patient_id": "P-9005", "assigned_doctor_id": "DOC-006", "notes": "Crush injury fasciotomy observation", "last_status_change": "2026-08-25T14:50:00Z"}
+      ]
+    },
+    {
+      "unit_id": "acute_care",
+      "unit_name": "Acute Emergency Care",
+      "floor": 1,
+      "total_beds": 12,
+      "available_beds": 4,
+      "occupied_beds": 6,
+      "cleaning_beds": 1,
+      "reserved_beds": 1,
+      "unavailable_beds": 0,
+      "default_capabilities": ["cardiac_monitor", "oxygen_wall", "iv_pump"],
+      "beds": [
+        {"bed_id": "AC-1", "bed_label": "Acute Bed 1", "status": "occupied", "equipment": ["cardiac_monitor", "oxygen_wall"], "current_patient_id": "P-9010", "assigned_doctor_id": "DOC-001", "notes": "Chest pain workup", "last_status_change": "2026-08-25T14:00:00Z"},
+        {"bed_id": "AC-2", "bed_label": "Acute Bed 2", "status": "occupied", "equipment": ["cardiac_monitor", "oxygen_wall"], "current_patient_id": "P-9011", "assigned_doctor_id": "DOC-001", "notes": "COPD exacerbation", "last_status_change": "2026-08-25T14:30:00Z"},
+        {"bed_id": "AC-3", "bed_label": "Acute Bed 3", "status": "available", "equipment": ["cardiac_monitor", "oxygen_wall"], "current_patient_id": null, "assigned_doctor_id": null, "notes": "Ready", "last_status_change": "2026-08-25T15:50:00Z"},
+        {"bed_id": "AC-4", "bed_label": "Acute Bed 4", "status": "available", "equipment": ["cardiac_monitor", "oxygen_wall"], "current_patient_id": null, "assigned_doctor_id": null, "notes": "Ready", "last_status_change": "2026-08-25T15:55:00Z"},
+        {"bed_id": "AC-5", "bed_label": "Acute Bed 5", "status": "occupied", "equipment": ["cardiac_monitor", "oxygen_wall"], "current_patient_id": "P-9014", "assigned_doctor_id": "DOC-003", "notes": "Biliary colic", "last_status_change": "2026-08-25T15:00:00Z"},
+        {"bed_id": "AC-6", "bed_label": "Acute Bed 6", "status": "reserved", "equipment": ["cardiac_monitor", "oxygen_wall"], "current_patient_id": "P-9015", "assigned_doctor_id": "DOC-004", "notes": "Reserved from triage", "last_status_change": "2026-08-25T16:30:00Z"},
+        {"bed_id": "AC-7", "bed_label": "Acute Bed 7", "status": "occupied", "equipment": ["cardiac_monitor", "oxygen_wall"], "current_patient_id": "P-9016", "assigned_doctor_id": "DOC-003", "notes": "DKA protocol", "last_status_change": "2026-08-25T15:15:00Z"},
+        {"bed_id": "AC-8", "bed_label": "Acute Bed 8", "status": "cleaning", "equipment": ["cardiac_monitor", "oxygen_wall"], "current_patient_id": null, "assigned_doctor_id": null, "notes": "Cleaning", "last_status_change": "2026-08-25T16:20:00Z"},
+        {"bed_id": "AC-9", "bed_label": "Acute Bed 9", "status": "occupied", "equipment": ["cardiac_monitor", "oxygen_wall"], "current_patient_id": "P-9018", "assigned_doctor_id": "DOC-004", "notes": "Syncope", "last_status_change": "2026-08-25T15:35:00Z"},
+        {"bed_id": "AC-10", "bed_label": "Acute Bed 10", "status": "occupied", "equipment": ["cardiac_monitor", "oxygen_wall"], "current_patient_id": "P-9019", "assigned_doctor_id": "DOC-001", "notes": "Severe migraine", "last_status_change": "2026-08-25T15:40:00Z"},
+        {"bed_id": "AC-11", "bed_label": "Acute Bed 11", "status": "available", "equipment": ["cardiac_monitor", "oxygen_wall"], "current_patient_id": null, "assigned_doctor_id": null, "notes": "Ready", "last_status_change": "2026-08-25T16:10:00Z"},
+        {"bed_id": "AC-12", "bed_label": "Acute Bed 12", "status": "available", "equipment": ["cardiac_monitor", "oxygen_wall"], "current_patient_id": null, "assigned_doctor_id": null, "notes": "Ready", "last_status_change": "2026-08-25T16:12:00Z"}
+      ]
+    },
+    {
+      "unit_id": "fast_track",
+      "unit_name": "Fast Track & Minor Care",
+      "floor": 1,
+      "total_beds": 10,
+      "available_beds": 4,
+      "occupied_beds": 4,
+      "cleaning_beds": 2,
+      "reserved_beds": 0,
+      "unavailable_beds": 0,
+      "default_capabilities": ["exam_chair_bed", "suture_cart", "ent_cart"],
+      "beds": [
+        {"bed_id": "FT-1", "bed_label": "Fast Track 1", "status": "occupied", "equipment": ["exam_chair_bed"], "current_patient_id": "P-9021", "assigned_doctor_id": "DOC-005", "notes": "Hand laceration", "last_status_change": "2026-08-25T15:45:00Z"},
+        {"bed_id": "FT-2", "bed_label": "Fast Track 2", "status": "occupied", "equipment": ["exam_chair_bed"], "current_patient_id": "P-9022", "assigned_doctor_id": "DOC-005", "notes": "Ankle sprain", "last_status_change": "2026-08-25T15:50:00Z"},
+        {"bed_id": "FT-3", "bed_label": "Fast Track 3", "status": "cleaning", "equipment": ["exam_chair_bed"], "current_patient_id": null, "assigned_doctor_id": null, "notes": "Wipe down", "last_status_change": "2026-08-25T16:30:00Z"},
+        {"bed_id": "FT-4", "bed_label": "Fast Track 4", "status": "available", "equipment": ["exam_chair_bed"], "current_patient_id": null, "assigned_doctor_id": null, "notes": "Ready", "last_status_change": "2026-08-25T16:00:00Z"},
+        {"bed_id": "FT-5", "bed_label": "Fast Track 5", "status": "available", "equipment": ["exam_chair_bed"], "current_patient_id": null, "assigned_doctor_id": null, "notes": "Ready", "last_status_change": "2026-08-25T16:05:00Z"},
+        {"bed_id": "FT-6", "bed_label": "Fast Track 6", "status": "occupied", "equipment": ["exam_chair_bed"], "current_patient_id": "P-9025", "assigned_doctor_id": "DOC-005", "notes": "Abscess I&D", "last_status_change": "2026-08-25T16:00:00Z"},
+        {"bed_id": "FT-7", "bed_label": "Fast Track 7", "status": "cleaning", "equipment": ["exam_chair_bed"], "current_patient_id": null, "assigned_doctor_id": null, "notes": "Wipe down", "last_status_change": "2026-08-25T16:35:00Z"},
+        {"bed_id": "FT-8", "bed_label": "Fast Track 8", "status": "available", "equipment": ["exam_chair_bed"], "current_patient_id": null, "assigned_doctor_id": null, "notes": "Ready", "last_status_change": "2026-08-25T16:15:00Z"},
+        {"bed_id": "FT-9", "bed_label": "Fast Track 9", "status": "available", "equipment": ["exam_chair_bed"], "current_patient_id": null, "assigned_doctor_id": null, "notes": "Ready", "last_status_change": "2026-08-25T16:20:00Z"},
+        {"bed_id": "FT-10", "bed_label": "Fast Track 10", "status": "occupied", "equipment": ["exam_chair_bed"], "current_patient_id": "P-9028", "assigned_doctor_id": "DOC-005", "notes": "Eye foreign body", "last_status_change": "2026-08-25T16:10:00Z"}
+      ]
+    },
+    {
+      "unit_id": "cardiac_icu",
+      "unit_name": "Cardiac Intensive Care",
+      "floor": 2,
+      "total_beds": 8,
+      "available_beds": 2,
+      "occupied_beds": 5,
+      "cleaning_beds": 0,
+      "reserved_beds": 0,
+      "unavailable_beds": 1,
+      "default_capabilities": [
+        "continuous_telemetry",
+        "intra_aortic_balloon_pump",
+        "ventilator",
+        "invasive_hemodynamics"
+      ],
+      "beds": [
+        {"bed_id": "CICU-1", "bed_label": "CICU Bed 1", "status": "occupied", "equipment": ["continuous_telemetry", "ventilator", "invasive_hemodynamics"], "current_patient_id": "P-9030", "assigned_doctor_id": "DOC-004", "notes": "Post-PCI cardiogenic shock", "last_status_change": "2026-08-25T12:00:00Z"},
+        {"bed_id": "CICU-2", "bed_label": "CICU Bed 2", "status": "occupied", "equipment": ["continuous_telemetry", "ventilator"], "current_patient_id": "P-9031", "assigned_doctor_id": "DOC-004", "notes": "Severe NSTEMI with heart failure", "last_status_change": "2026-08-25T13:15:00Z"},
+        {"bed_id": "CICU-3", "bed_label": "CICU Bed 3", "status": "available", "equipment": ["continuous_telemetry", "ventilator", "invasive_hemodynamics"], "current_patient_id": null, "assigned_doctor_id": null, "notes": "Prepped for ICU transfer", "last_status_change": "2026-08-25T15:00:00Z"},
+        {"bed_id": "CICU-4", "bed_label": "CICU Bed 4", "status": "available", "equipment": ["continuous_telemetry", "ventilator"], "current_patient_id": null, "assigned_doctor_id": null, "notes": "Ready", "last_status_change": "2026-08-25T15:30:00Z"},
+        {"bed_id": "CICU-5", "bed_label": "CICU Bed 5", "status": "occupied", "equipment": ["continuous_telemetry"], "current_patient_id": "P-9034", "assigned_doctor_id": "DOC-004", "notes": "Complete heart block on transcutaneous pacing", "last_status_change": "2026-08-25T14:20:00Z"},
+        {"bed_id": "CICU-6", "bed_label": "CICU Bed 6", "status": "occupied", "equipment": ["continuous_telemetry"], "current_patient_id": "P-9035", "assigned_doctor_id": "DOC-006", "notes": "Hypertensive emergency encephalopathy", "last_status_change": "2026-08-25T14:40:00Z"},
+        {"bed_id": "CICU-7", "bed_label": "CICU Bed 7", "status": "occupied", "equipment": ["continuous_telemetry", "ventilator"], "current_patient_id": "P-9036", "assigned_doctor_id": "DOC-006", "notes": "Ventricular tachycardia storm", "last_status_change": "2026-08-25T15:10:00Z"},
+        {"bed_id": "CICU-8", "bed_label": "CICU Bed 8", "status": "unavailable", "equipment": ["continuous_telemetry"], "current_patient_id": null, "assigned_doctor_id": null, "notes": "Telemetry monitor calibration", "last_status_change": "2026-08-25T11:00:00Z"}
+      ]
+    }
+  ],
+  "staffing": {
+    "doctors_on_shift": 9,
+    "nurses_on_shift": 26,
+    "triage_nurses_active": 4
+  },
+  "diagnostic_equipment": {
+    "ct_scanner": {
+      "total": 3,
+      "available": 2,
+      "status": "Dual-source trauma CT online"
+    },
+    "mri_scanner": {
+      "total": 2,
+      "available": 1,
+      "status": "1.5T acute stroke ready"
+    },
+    "portable_xray": {
+      "total": 6,
+      "available": 4,
+      "status": "Operational"
+    },
+    "point_of_care_ultrasound": {
+      "total": 8,
+      "available": 6,
+      "status": "Operational"
+    },
+    "ecg_machines": {
+      "total": 12,
+      "available": 9,
+      "status": "Operational"
+    }
+  },
+  "surge_thresholds": {
+    "waiting_room_occupancy_ratio": 0.85,
+    "critical_waiting_count": 7,
+    "bed_occupancy_ratio": 0.92
+  }
+}

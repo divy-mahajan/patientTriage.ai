@@ -6,12 +6,12 @@
 
 ### Core Objectives
 1. **Accelerate Patient Intake & Triage:** Structured capture of chief complaints, vital signs, physical distress observations, and medical history.
-2. **Transparent AI Risk Scoring:** Fast, explainable priority/risk assessment (ESI Levels 1–5 + Risk Score + High-Risk Alert) with local feature contribution explanations (e.g., "SpO2 < 90%", "HR > 120 bpm").
-3. **Dynamic Hospital Live Capacity & Bed Matching:** Real-time awareness of waiting room crowding, bed utilization across departments (ED, Resuscitation, Observation, Cardiology, General Med, ICU), and AI-driven bed recommendations based on clinical acuity and equipment needs.
+2. **Transparent AI Risk Scoring (Prototype / Synthetic Target):** Fast, explainable priority/risk assessment (ESI Levels 1–5 + Risk Score + High-Risk Alert) with local feature contribution explanations (e.g., "SpO2 < 90%", "HR > 120 bpm").
+   > **Clinical Disclaimer:** Triage levels, risk scores, and recommendations produced by this prototype system are derived from synthetic data for demonstration, architecture, and prototype validation purposes only. They are NOT clinically validated or certified for actual medical diagnosis or live clinical decision-making.
+3. **Dynamic Hospital Live Capacity & Bed Matching:** Real-time awareness of waiting room crowding, total/available/occupied beds by unit and individual bed status, equipment capabilities per bed, and swappable hospital profile configurations.
 4. **Physician Caseload Balancing & Smart Check-In:** Active physician shift tracking, specialty matching, and real-time handoff queue management.
 5. **Rule-Based Diagnostic Protocol Engine:** Instant diagnostic panel suggestions (Labs, Imaging, ECG, Point-of-Care) based on transparent clinical lookup tables.
-6. **Crisis / Surge Resilience:** Automated Surge Mode protocols triggered when ED volume outpaces capacity, enabling rapid fast-tracking, urgent reassessments, and discharge throughput prioritization.
-7. **Clinical Auditability & Governance:** Immutable timeline tracking of patient intake, AI predictions, clinician confirmations or overrides with mandatory rationale recording, and final bed routing.
+6. **Future / Optional Capabilities:** Surge Mode crisis console and Audit Log timeline are designed as extensible future enhancements.
 
 ---
 
@@ -37,7 +37,7 @@ Derived from the Stitch project: **"Remix of PatientTriage.ai Healthcare Platfor
 | `surface` | `#FFFFFF` | Card backgrounds, table bodies, navigation pane |
 | `surface-bright` | `#FAF8FF` | Hover states on table rows and cards |
 | `surface-container-low` | `#F3F3F6` | Tag backgrounds, input disabled fills, subtle headers |
-| `surface-container` | `#EEEEEF0` | Structural dividers and secondary cards |
+| `surface-container` | `#EEEEF0` | Structural dividers and secondary cards |
 | `surface-container-high` | `#E8E8EA` | Active tab highlights, badge containers |
 | `outline-variant` (`border`) | `#E0E2E6` | Standard 1px card and table borders |
 | `outline` | `#737784` | Neutral icons, placeholder text, inactive timeline pins |

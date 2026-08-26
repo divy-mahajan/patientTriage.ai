@@ -1,0 +1,222 @@
+[
+  {
+    "snapshot_id": "SNAP-001",
+    "snapshot_name": "Morning Normal Flow",
+    "timestamp": "2026-08-25T08:00:00Z",
+    "hospital_id": "st_marys_general",
+    "waiting_room": {
+      "capacity": 45,
+      "current_occupancy": 12,
+      "occupancy_rate": 0.27,
+      "estimated_wait_minutes": 15
+    },
+    "beds_summary": {
+      "total_beds": 24,
+      "available_beds": 14,
+      "occupied_beds": 8,
+      "cleaning_beds": 2,
+      "reserved_beds": 0,
+      "unavailable_beds": 0
+    },
+    "unit_breakdown": {
+      "resuscitation": {
+        "total": 3,
+        "available": 2,
+        "occupied": 1
+      },
+      "emergency": {
+        "total": 5,
+        "available": 3,
+        "occupied": 2
+      },
+      "cardiology": {
+        "total": 4,
+        "available": 2,
+        "occupied": 2
+      },
+      "observation": {
+        "total": 6,
+        "available": 4,
+        "occupied": 2
+      },
+      "general_medicine": {
+        "total": 6,
+        "available": 3,
+        "occupied": 1
+      }
+    },
+    "staffing": {
+      "doctors_active": 4,
+      "nurses_active": 12,
+      "average_doctor_caseload": 2.0
+    },
+    "surge_status": "NORMAL"
+  },
+  {
+    "snapshot_id": "SNAP-002",
+    "snapshot_name": "Afternoon Peak Volume (Current Live State)",
+    "timestamp": "2026-08-25T16:00:00Z",
+    "hospital_id": "st_marys_general",
+    "waiting_room": {
+      "capacity": 45,
+      "current_occupancy": 27,
+      "occupancy_rate": 0.6,
+      "estimated_wait_minutes": 42
+    },
+    "beds_summary": {
+      "total_beds": 24,
+      "available_beds": 8,
+      "occupied_beds": 11,
+      "cleaning_beds": 3,
+      "reserved_beds": 1,
+      "unavailable_beds": 1
+    },
+    "unit_breakdown": {
+      "resuscitation": {
+        "total": 3,
+        "available": 1,
+        "occupied": 1,
+        "unavailable": 1
+      },
+      "emergency": {
+        "total": 5,
+        "available": 1,
+        "occupied": 3,
+        "cleaning": 1
+      },
+      "cardiology": {
+        "total": 4,
+        "available": 1,
+        "occupied": 2,
+        "reserved": 1
+      },
+      "observation": {
+        "total": 6,
+        "available": 3,
+        "occupied": 3
+      },
+      "general_medicine": {
+        "total": 6,
+        "available": 2,
+        "occupied": 2,
+        "cleaning": 2
+      }
+    },
+    "staffing": {
+      "doctors_active": 5,
+      "nurses_active": 14,
+      "average_doctor_caseload": 4.2
+    },
+    "surge_status": "NORMAL"
+  },
+  {
+    "snapshot_id": "SNAP-003",
+    "snapshot_name": "Evening Surge (Multi-Vehicle Incident Scenario)",
+    "timestamp": "2026-08-25T20:30:00Z",
+    "hospital_id": "st_marys_general",
+    "waiting_room": {
+      "capacity": 45,
+      "current_occupancy": 41,
+      "occupancy_rate": 0.91,
+      "estimated_wait_minutes": 95
+    },
+    "beds_summary": {
+      "total_beds": 24,
+      "available_beds": 2,
+      "occupied_beds": 19,
+      "cleaning_beds": 2,
+      "reserved_beds": 1,
+      "unavailable_beds": 0
+    },
+    "unit_breakdown": {
+      "resuscitation": {
+        "total": 3,
+        "available": 0,
+        "occupied": 3
+      },
+      "emergency": {
+        "total": 5,
+        "available": 0,
+        "occupied": 5
+      },
+      "cardiology": {
+        "total": 4,
+        "available": 0,
+        "occupied": 3,
+        "reserved": 1
+      },
+      "observation": {
+        "total": 6,
+        "available": 1,
+        "occupied": 4,
+        "cleaning": 1
+      },
+      "general_medicine": {
+        "total": 6,
+        "available": 1,
+        "occupied": 4,
+        "cleaning": 1
+      }
+    },
+    "staffing": {
+      "doctors_active": 5,
+      "nurses_active": 15,
+      "average_doctor_caseload": 5.8
+    },
+    "surge_status": "SURGE_ACTIVE"
+  },
+  {
+    "snapshot_id": "SNAP-004",
+    "snapshot_name": "Night Shift Low Volume",
+    "timestamp": "2026-08-26T03:30:00Z",
+    "hospital_id": "st_marys_general",
+    "waiting_room": {
+      "capacity": 45,
+      "current_occupancy": 6,
+      "occupancy_rate": 0.13,
+      "estimated_wait_minutes": 10
+    },
+    "beds_summary": {
+      "total_beds": 24,
+      "available_beds": 16,
+      "occupied_beds": 7,
+      "cleaning_beds": 1,
+      "reserved_beds": 0,
+      "unavailable_beds": 0
+    },
+    "unit_breakdown": {
+      "resuscitation": {
+        "total": 3,
+        "available": 2,
+        "occupied": 1
+      },
+      "emergency": {
+        "total": 5,
+        "available": 4,
+        "occupied": 1
+      },
+      "cardiology": {
+        "total": 4,
+        "available": 2,
+        "occupied": 2
+      },
+      "observation": {
+        "total": 6,
+        "available": 4,
+        "occupied": 2
+      },
+      "general_medicine": {
+        "total": 6,
+        "available": 4,
+        "occupied": 1,
+        "cleaning": 1
+      }
+    },
+    "staffing": {
+      "doctors_active": 2,
+      "nurses_active": 8,
+      "average_doctor_caseload": 3.5
+    },
+    "surge_status": "NORMAL"
+  }
+]

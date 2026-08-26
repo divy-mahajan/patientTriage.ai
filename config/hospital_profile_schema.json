@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "HospitalProfile",
+  "description": "Schema for PatientTriage.ai swappable hospital capacity and infrastructure profile.",
+  "type": "object",
+  "required": [
+    "hospital_id",
+    "name",
+    "emergency_level",
+    "waiting_room",
+    "units",
+    "summary"
+  ],
+  "properties": {
+    "hospital_id": {
+      "type": "string",
+      "description": "Unique identifier for the hospital profile"
+    },
+    "name": {
+      "type": "string",
+      "description": "Display name of the hospital"
+    },
+    "emergency_level": {
+      "type": "string",
+      "description": "Trauma / emergency designation level"
+    },
+    "address": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "object",
+      "required": ["total_beds", "available_beds", "occupied_beds", "cleaning_beds", "reserved_beds", "unavailable_beds"],
+      "properties": {
+        "total_beds": { "type": "integer", "minimum": 0 },
+        "available_beds": { "type": "integer", "minimum": 0 },
+        "occupied_beds": { "type": "integer", "minimum": 0 },
+        "cleaning_beds": { "type": "integer", "minimum": 0 },
+        "reserved_beds": { "type": "integer", "minimum": 0 },
+        "unavailable_beds": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "waiting_room": {
+      "type": "object",
+      "required": ["capacity", "current_occupancy", "overflow_limit"],
+      "properties": {
+        "capacity": { "type": "integer", "minimum": 1 },
+        "current_occupancy": { "type": "integer", "minimum": 0 },
+        "overflow_limit": { "type": "integer", "minimum": 1 },
+        "estimated_wait_time_minutes": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "units": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "unit_id",
+          "unit_name",
+          "floor",
+          "total_beds",
+          "available_beds",
+          "occupied_beds",
+          "beds"
+        ],
+        "properties": {
+          "unit_id": { "type": "string" },
+          "unit_name": { "type": "string" },
+          "floor": { "type": "integer" },
+          "total_beds": { "type": "integer", "minimum": 0 },
+          "available_beds": { "type": "integer", "minimum": 0 },
+          "occupied_beds": { "type": "integer", "minimum": 0 },
+          "cleaning_beds": { "type": "integer", "minimum": 0 },
+          "reserved_beds": { "type": "integer", "minimum": 0 },
+          "unavailable_beds": { "type": "integer", "minimum": 0 },
+          "default_capabilities": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "beds": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["bed_id", "bed_label", "status", "equipment"],
+              "properties": {
+                "bed_id": { "type": "string" },
+                "bed_label": { "type": "string" },
+                "status": {
+                  "type": "string",
+                  "enum": ["available", "occupied", "cleaning", "reserved", "unavailable"]
+                },
+                "equipment": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
+                "current_patient_id": {
+                  "type": ["string", "null"]
+                },
+                "assigned_doctor_id": {
+                  "type": ["string", "null"]
+                },
+                "notes": {
+                  "type": "string"
+                },
+                "last_status_change": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "staffing": {
+      "type": "object",
+      "properties": {
+        "doctors_on_shift": { "type": "integer", "minimum": 0 },
+        "nurses_on_shift": { "type": "integer", "minimum": 0 },
+        "triage_nurses_active": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "diagnostic_equipment": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["total", "available"],
+        "properties": {
+          "total": { "type": "integer", "minimum": 0 },
+          "available": { "type": "integer", "minimum": 0 },
+          "status": { "type": "string" }
+        }
+      }
+    },
+    "surge_thresholds": {
+      "type": "object",
+      "properties": {
+        "waiting_room_occupancy_ratio": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "critical_waiting_count": { "type": "integer", "minimum": 1 },
+        "bed_occupancy_ratio": { "type": "number", "minimum": 0.0, "maximum": 1.0 }
+      }
+    }
+  }
+}

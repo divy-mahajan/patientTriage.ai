@@ -1,0 +1,394 @@
+{
+  "hospital_id": "st_marys_general",
+  "name": "St. Mary's General Hospital",
+  "emergency_level": "Level 1 Trauma Center",
+  "address": "742 Evergreen Terrace, Medical District",
+  "summary": {
+    "total_beds": 24,
+    "available_beds": 8,
+    "occupied_beds": 11,
+    "cleaning_beds": 3,
+    "reserved_beds": 1,
+    "unavailable_beds": 1
+  },
+  "waiting_room": {
+    "capacity": 45,
+    "current_occupancy": 27,
+    "overflow_limit": 55,
+    "estimated_wait_time_minutes": 42
+  },
+  "units": [
+    {
+      "unit_id": "resuscitation",
+      "unit_name": "Resuscitation Bay",
+      "floor": 1,
+      "total_beds": 3,
+      "available_beds": 1,
+      "occupied_beds": 1,
+      "cleaning_beds": 0,
+      "reserved_beds": 0,
+      "unavailable_beds": 1,
+      "default_capabilities": [
+        "ventilator",
+        "defibrillator",
+        "invasive_monitoring",
+        "arterial_line",
+        "rapid_infuser"
+      ],
+      "beds": [
+        {
+          "bed_id": "R-1",
+          "bed_label": "Resus Bay 1",
+          "status": "occupied",
+          "equipment": ["ventilator", "defibrillator", "invasive_monitoring", "rapid_infuser"],
+          "current_patient_id": "P-10470",
+          "assigned_doctor_id": "DOC-001",
+          "notes": "Intubated cardiac arrest post-ROSC",
+          "last_status_change": "2026-08-25T14:15:00Z"
+        },
+        {
+          "bed_id": "R-2",
+          "bed_label": "Resus Bay 2",
+          "status": "unavailable",
+          "equipment": ["ventilator", "defibrillator", "invasive_monitoring"],
+          "current_patient_id": null,
+          "assigned_doctor_id": null,
+          "notes": "Negative pressure HVAC maintenance",
+          "last_status_change": "2026-08-25T12:00:00Z"
+        },
+        {
+          "bed_id": "R-3",
+          "bed_label": "Resus Bay 3",
+          "status": "available",
+          "equipment": ["ventilator", "defibrillator", "invasive_monitoring", "rapid_infuser"],
+          "current_patient_id": null,
+          "assigned_doctor_id": null,
+          "notes": "Sterilized and prepped for trauma intake",
+          "last_status_change": "2026-08-25T15:00:00Z"
+        }
+      ]
+    },
+    {
+      "unit_id": "emergency",
+      "unit_name": "Emergency Department",
+      "floor": 1,
+      "total_beds": 5,
+      "available_beds": 1,
+      "occupied_beds": 3,
+      "cleaning_beds": 1,
+      "reserved_beds": 0,
+      "unavailable_beds": 0,
+      "default_capabilities": [
+        "cardiac_monitor",
+        "oxygen_wall",
+        "suction",
+        "iv_pump"
+      ],
+      "beds": [
+        {
+          "bed_id": "ED-1",
+          "bed_label": "ED Bed 1",
+          "status": "occupied",
+          "equipment": ["cardiac_monitor", "oxygen_wall", "iv_pump"],
+          "current_patient_id": "P-10475",
+          "assigned_doctor_id": "DOC-002",
+          "notes": "Kidney stone workup",
+          "last_status_change": "2026-08-25T14:40:00Z"
+        },
+        {
+          "bed_id": "ED-2",
+          "bed_label": "ED Bed 2",
+          "status": "occupied",
+          "equipment": ["cardiac_monitor", "oxygen_wall", "iv_pump"],
+          "current_patient_id": "P-10478",
+          "assigned_doctor_id": "DOC-003",
+          "notes": "Syncope observation",
+          "last_status_change": "2026-08-25T15:10:00Z"
+        },
+        {
+          "bed_id": "ED-3",
+          "bed_label": "ED Bed 3",
+          "status": "available",
+          "equipment": ["cardiac_monitor", "oxygen_wall", "iv_pump"],
+          "current_patient_id": null,
+          "assigned_doctor_id": null,
+          "notes": "Ready for intake",
+          "last_status_change": "2026-08-25T15:50:00Z"
+        },
+        {
+          "bed_id": "ED-4",
+          "bed_label": "ED Bed 4",
+          "status": "cleaning",
+          "equipment": ["cardiac_monitor", "oxygen_wall", "iv_pump"],
+          "current_patient_id": null,
+          "assigned_doctor_id": null,
+          "notes": "Terminal cleaning post-discharge",
+          "last_status_change": "2026-08-25T16:20:00Z"
+        },
+        {
+          "bed_id": "ED-5",
+          "bed_label": "ED Bed 5",
+          "status": "occupied",
+          "equipment": ["cardiac_monitor", "oxygen_wall", "iv_pump"],
+          "current_patient_id": "P-10479",
+          "assigned_doctor_id": "DOC-002",
+          "notes": "Acute laceration suturing",
+          "last_status_change": "2026-08-25T15:35:00Z"
+        }
+      ]
+    },
+    {
+      "unit_id": "cardiology",
+      "unit_name": "Cardiology Wing",
+      "floor": 1,
+      "total_beds": 4,
+      "available_beds": 1,
+      "occupied_beds": 2,
+      "cleaning_beds": 0,
+      "reserved_beds": 1,
+      "unavailable_beds": 0,
+      "default_capabilities": [
+        "continuous_telemetry",
+        "12_lead_ecg",
+        "cardiac_monitor",
+        "oxygen_wall",
+        "defibrillator_near"
+      ],
+      "beds": [
+        {
+          "bed_id": "C-1",
+          "bed_label": "Cardio Bed 1",
+          "status": "occupied",
+          "equipment": ["continuous_telemetry", "cardiac_monitor", "oxygen_wall"],
+          "current_patient_id": "P-10468",
+          "assigned_doctor_id": "DOC-004",
+          "notes": "Unstable angina on heparin drip",
+          "last_status_change": "2026-08-25T13:30:00Z"
+        },
+        {
+          "bed_id": "C-2",
+          "bed_label": "Cardio Bed 2",
+          "status": "occupied",
+          "equipment": ["continuous_telemetry", "cardiac_monitor", "oxygen_wall"],
+          "current_patient_id": "P-10472",
+          "assigned_doctor_id": "DOC-004",
+          "notes": "Atrial fibrillation with RVR",
+          "last_status_change": "2026-08-25T14:00:00Z"
+        },
+        {
+          "bed_id": "C-3",
+          "bed_label": "Cardio Bed 3",
+          "status": "reserved",
+          "equipment": ["continuous_telemetry", "cardiac_monitor", "oxygen_wall"],
+          "current_patient_id": "P-10482",
+          "assigned_doctor_id": "DOC-001",
+          "notes": "Reserved for incoming chest pain triage",
+          "last_status_change": "2026-08-25T16:42:00Z"
+        },
+        {
+          "bed_id": "C-4",
+          "bed_label": "Cardio Bed 4",
+          "status": "available",
+          "equipment": ["continuous_telemetry", "cardiac_monitor", "oxygen_wall"],
+          "current_patient_id": null,
+          "assigned_doctor_id": null,
+          "notes": "Ready for cardiac patient",
+          "last_status_change": "2026-08-25T15:15:00Z"
+        }
+      ]
+    },
+    {
+      "unit_id": "observation",
+      "unit_name": "Observation Unit",
+      "floor": 1,
+      "total_beds": 6,
+      "available_beds": 3,
+      "occupied_beds": 3,
+      "cleaning_beds": 0,
+      "reserved_beds": 0,
+      "unavailable_beds": 0,
+      "default_capabilities": [
+        "basic_monitor",
+        "oxygen_wall",
+        "reclining_chair_bed"
+      ],
+      "beds": [
+        {
+          "bed_id": "OB-1",
+          "bed_label": "Obs Bed 1",
+          "status": "occupied",
+          "equipment": ["basic_monitor", "oxygen_wall"],
+          "current_patient_id": "P-10474",
+          "assigned_doctor_id": "DOC-005",
+          "notes": "Asthma post-nebulizer monitoring",
+          "last_status_change": "2026-08-25T14:20:00Z"
+        },
+        {
+          "bed_id": "OB-2",
+          "bed_label": "Obs Bed 2",
+          "status": "occupied",
+          "equipment": ["basic_monitor", "oxygen_wall"],
+          "current_patient_id": "P-10476",
+          "assigned_doctor_id": "DOC-005",
+          "notes": "Dehydration IV fluids",
+          "last_status_change": "2026-08-25T14:50:00Z"
+        },
+        {
+          "bed_id": "OB-3",
+          "bed_label": "Obs Bed 3",
+          "status": "occupied",
+          "equipment": ["basic_monitor", "oxygen_wall"],
+          "current_patient_id": "P-10480",
+          "assigned_doctor_id": "DOC-003",
+          "notes": "Mild concussion observation",
+          "last_status_change": "2026-08-25T15:40:00Z"
+        },
+        {
+          "bed_id": "OB-4",
+          "bed_label": "Obs Bed 4",
+          "status": "available",
+          "equipment": ["basic_monitor", "oxygen_wall"],
+          "current_patient_id": null,
+          "assigned_doctor_id": null,
+          "notes": "Ready for transfer",
+          "last_status_change": "2026-08-25T15:00:00Z"
+        },
+        {
+          "bed_id": "OB-5",
+          "bed_label": "Obs Bed 5",
+          "status": "available",
+          "equipment": ["basic_monitor", "oxygen_wall"],
+          "current_patient_id": null,
+          "assigned_doctor_id": null,
+          "notes": "Ready",
+          "last_status_change": "2026-08-25T15:30:00Z"
+        },
+        {
+          "bed_id": "OB-6",
+          "bed_label": "Obs Bed 6",
+          "status": "available",
+          "equipment": ["basic_monitor", "oxygen_wall"],
+          "current_patient_id": null,
+          "assigned_doctor_id": null,
+          "notes": "Ready",
+          "last_status_change": "2026-08-25T16:00:00Z"
+        }
+      ]
+    },
+    {
+      "unit_id": "general_medicine",
+      "unit_name": "General Medicine",
+      "floor": 1,
+      "total_beds": 6,
+      "available_beds": 2,
+      "occupied_beds": 2,
+      "cleaning_beds": 2,
+      "reserved_beds": 0,
+      "unavailable_beds": 0,
+      "default_capabilities": [
+        "standard_hospital_bed",
+        "iv_pole",
+        "call_light"
+      ],
+      "beds": [
+        {
+          "bed_id": "GM-1",
+          "bed_label": "GenMed Bed 1",
+          "status": "occupied",
+          "equipment": ["standard_hospital_bed", "iv_pole"],
+          "current_patient_id": "P-10465",
+          "assigned_doctor_id": "DOC-005",
+          "notes": "Cellulitis IV antibiotics",
+          "last_status_change": "2026-08-25T13:00:00Z"
+        },
+        {
+          "bed_id": "GM-2",
+          "bed_label": "GenMed Bed 2",
+          "status": "cleaning",
+          "equipment": ["standard_hospital_bed", "iv_pole"],
+          "current_patient_id": null,
+          "assigned_doctor_id": null,
+          "notes": "Housekeeping in progress",
+          "last_status_change": "2026-08-25T16:30:00Z"
+        },
+        {
+          "bed_id": "GM-3",
+          "bed_label": "GenMed Bed 3",
+          "status": "occupied",
+          "equipment": ["standard_hospital_bed", "iv_pole"],
+          "current_patient_id": "P-10471",
+          "assigned_doctor_id": "DOC-003",
+          "notes": "Pneumonia non-hypoxic",
+          "last_status_change": "2026-08-25T13:45:00Z"
+        },
+        {
+          "bed_id": "GM-4",
+          "bed_label": "GenMed Bed 4",
+          "status": "cleaning",
+          "equipment": ["standard_hospital_bed", "iv_pole"],
+          "current_patient_id": null,
+          "assigned_doctor_id": null,
+          "notes": "Sanitization pending",
+          "last_status_change": "2026-08-25T16:35:00Z"
+        },
+        {
+          "bed_id": "GM-5",
+          "bed_label": "GenMed Bed 5",
+          "status": "available",
+          "equipment": ["standard_hospital_bed", "iv_pole"],
+          "current_patient_id": null,
+          "assigned_doctor_id": null,
+          "notes": "Ready",
+          "last_status_change": "2026-08-25T15:20:00Z"
+        },
+        {
+          "bed_id": "GM-6",
+          "bed_label": "GenMed Bed 6",
+          "status": "available",
+          "equipment": ["standard_hospital_bed", "iv_pole"],
+          "current_patient_id": null,
+          "assigned_doctor_id": null,
+          "notes": "Ready",
+          "last_status_change": "2026-08-25T15:55:00Z"
+        }
+      ]
+    }
+  ],
+  "staffing": {
+    "doctors_on_shift": 5,
+    "nurses_on_shift": 14,
+    "triage_nurses_active": 3
+  },
+  "diagnostic_equipment": {
+    "ct_scanner": {
+      "total": 2,
+      "available": 1,
+      "status": "1 active in ER, 1 in routine scan"
+    },
+    "portable_xray": {
+      "total": 3,
+      "available": 2,
+      "status": "Operational"
+    },
+    "point_of_care_ultrasound": {
+      "total": 4,
+      "available": 3,
+      "status": "Fast POCUS ready"
+    },
+    "ecg_machines": {
+      "total": 6,
+      "available": 4,
+      "status": "Operational"
+    },
+    "rapid_blood_gas_analyzer": {
+      "total": 2,
+      "available": 2,
+      "status": "Calibrated"
+    }
+  },
+  "surge_thresholds": {
+    "waiting_room_occupancy_ratio": 0.80,
+    "critical_waiting_count": 5,
+    "bed_occupancy_ratio": 0.90
+  }
+}

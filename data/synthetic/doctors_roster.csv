@@ -1,0 +1,9 @@
+doctor_id,name,specialty,shift_status,current_caseload,max_caseload,is_available,shift_start,shift_end,active_patients,avatar_url
+DOC-001,Dr. Arjun Mehta,Emergency Medicine,Active Shift,4,6,True,07:00,19:00,P-10470; P-10482,/avatars/dr_mehta.jpg
+DOC-002,Dr. Robert Chen,Trauma Surgery,Active Shift,5,7,True,07:00,19:00,P-10475; P-10479,/avatars/dr_chen.jpg
+DOC-003,Dr. Sarah O'Connor,Internal Medicine,Active Shift,6,6,False,08:00,20:00,P-10471; P-10478; P-10480,/avatars/dr_oconnor.jpg
+DOC-004,Dr. Marcus Washington,Cardiology,Active Shift,3,5,True,09:00,21:00,P-10468; P-10472,/avatars/dr_washington.jpg
+DOC-005,Dr. Priya Shah,Pediatrics & Emergency,Active Shift,3,6,True,11:00,23:00,P-10465; P-10474; P-10476,/avatars/dr_shah.jpg
+DOC-006,Dr. Elena Rostova,Critical Care / ICU,On Break,2,5,False,07:00,19:00,,/avatars/dr_rostova.jpg
+DOC-007,Dr. David Kim,Emergency Medicine,Off Duty,0,6,False,19:00,07:00,,/avatars/dr_kim.jpg
+DOC-008,Dr. Jessica Alverez,Emergency Medicine,Off Duty,0,6,False,19:00,07:00,,/avatars/dr_alverez.jpg

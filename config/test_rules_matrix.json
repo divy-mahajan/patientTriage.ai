@@ -1,0 +1,89 @@
+{
+  "version": "1.0.0",
+  "description": "Rule-based diagnostic test suggestion matrix based on chief complaints and clinical symptom presentations for PatientTriage.ai prototype.",
+  "rules": [
+    {
+      "complaint_category": "Chest Pain",
+      "keywords": ["chest pain", "angina", "tightness", "pressure", "substernal", "diaphoresis"],
+      "suggested_tests": [
+        { "code": "ECG_12LEAD", "name": "12-Lead Electrocardiogram (ECG)", "urgency": "Immediate (Stat)", "category": "Cardiac" },
+        { "code": "TROPONIN_HS", "name": "High-Sensitivity Troponin I", "urgency": "Stat", "category": "Lab" },
+        { "code": "CXR_PORTABLE", "name": "Portable Chest X-Ray", "urgency": "Urgent", "category": "Imaging" },
+        { "code": "CBC_DIFF", "name": "Complete Blood Count (CBC) with Diff", "urgency": "Routine", "category": "Lab" },
+        { "code": "BMP", "name": "Basic Metabolic Panel (BMP)", "urgency": "Routine", "category": "Lab" },
+        { "code": "PT_INR", "name": "Prothrombin Time / INR", "urgency": "Routine", "category": "Lab" }
+      ],
+      "contraindications_or_cautions": "If STEMI identified on ECG, immediately initiate cath lab activation."
+    },
+    {
+      "complaint_category": "Shortness of Breath / Respiratory Distress",
+      "keywords": ["shortness of breath", "dyspnea", "wheezing", "stridor", "hypoxia", "asthma", "copd"],
+      "suggested_tests": [
+        { "code": "CXR_PORTABLE", "name": "Portable Chest X-Ray", "urgency": "Stat", "category": "Imaging" },
+        { "code": "ABG", "name": "Arterial Blood Gas (ABG)", "urgency": "Stat", "category": "Lab" },
+        { "code": "ECG_12LEAD", "name": "12-Lead ECG", "urgency": "Urgent", "category": "Cardiac" },
+        { "code": "BNP", "name": "B-Type Natriuretic Peptide (BNP)", "urgency": "Urgent", "category": "Lab" },
+        { "code": "CBC_DIFF", "name": "CBC with Differential", "urgency": "Routine", "category": "Lab" }
+      ],
+      "contraindications_or_cautions": "Place on continuous pulse oximetry and supplemental oxygen immediately."
+    },
+    {
+      "complaint_category": "Altered Mental Status / Stroke Symptoms",
+      "keywords": ["altered mental status", "confusion", "slurred speech", "weakness", "facial droop", "syncope", "unresponsive"],
+      "suggested_tests": [
+        { "code": "POC_GLUCOSE", "name": "Point-of-Care Blood Glucose", "urgency": "Immediate (Stat)", "category": "Point of Care" },
+        { "code": "CT_HEAD_NO_CONTRAST", "name": "Non-Contrast Head CT", "urgency": "Immediate (Stat)", "category": "Imaging" },
+        { "code": "CTA_HEAD_NECK", "name": "CT Angiography Head & Neck", "urgency": "Stat", "category": "Imaging" },
+        { "code": "CBC_DIFF", "name": "CBC with Differential", "urgency": "Stat", "category": "Lab" },
+        { "code": "CMP", "name": "Comprehensive Metabolic Panel (CMP)", "urgency": "Stat", "category": "Lab" },
+        { "code": "TOX_SCREEN", "name": "Urine & Blood Toxicology Screen", "urgency": "Urgent", "category": "Lab" }
+      ],
+      "contraindications_or_cautions": "Calculate last known normal (LKN) time for tPA window eligibility."
+    },
+    {
+      "complaint_category": "Abdominal Pain",
+      "keywords": ["abdominal pain", "flank pain", "rlq pain", "ruq pain", "vomiting", "nausea", "melena"],
+      "suggested_tests": [
+        { "code": "CBC_DIFF", "name": "CBC with Differential", "urgency": "Urgent", "category": "Lab" },
+        { "code": "LIPASE", "name": "Serum Lipase", "urgency": "Urgent", "category": "Lab" },
+        { "code": "CMP_LFT", "name": "CMP / Liver Function Tests", "urgency": "Urgent", "category": "Lab" },
+        { "code": "URINALYSIS", "name": "Urinalysis with Microscopic", "urgency": "Urgent", "category": "Lab" },
+        { "code": "CT_ABDOMEN_PELVIS", "name": "CT Abdomen & Pelvis with IV Contrast", "urgency": "Urgent", "category": "Imaging" },
+        { "code": "HCG_PREG", "name": "Urine/Serum Beta-hCG (Female of childbearing age)", "urgency": "Stat", "category": "Lab" }
+      ],
+      "contraindications_or_cautions": "Check serum creatinine prior to IV contrast administration."
+    },
+    {
+      "complaint_category": "Fever / Suspected Sepsis",
+      "keywords": ["fever", "chills", "hypotension", "tachycardia", "sepsis", "rigors"],
+      "suggested_tests": [
+        { "code": "BLOOD_CULTURES_X2", "name": "Blood Cultures (2 separate sites)", "urgency": "Stat (Prior to Antibiotics)", "category": "Lab" },
+        { "code": "LACTATE_SERUM", "name": "Serum Lactate", "urgency": "Stat", "category": "Lab" },
+        { "code": "CBC_DIFF", "name": "CBC with Differential", "urgency": "Stat", "category": "Lab" },
+        { "code": "CMP", "name": "Comprehensive Metabolic Panel", "urgency": "Stat", "category": "Lab" },
+        { "code": "URINALYSIS_CULTURE", "name": "Urinalysis & Urine Culture", "urgency": "Stat", "category": "Lab" },
+        { "code": "CXR_PORTABLE", "name": "Portable Chest X-Ray", "urgency": "Urgent", "category": "Imaging" }
+      ],
+      "contraindications_or_cautions": "Initiate 30 mL/kg crystalloid fluid resuscitation if MAP < 65 or Lactate > 4 mmol/L."
+    },
+    {
+      "complaint_category": "Trauma / Laceration / Fracture",
+      "keywords": ["fall", "mvc", "laceration", "fracture", "deformity", "wound", "trauma", "head injury"],
+      "suggested_tests": [
+        { "code": "XRAY_EXTREMITY", "name": "Targeted Plain Radiograph (X-Ray)", "urgency": "Urgent", "category": "Imaging" },
+        { "code": "TETANUS_CHECK", "name": "Tetanus Immunization Verification", "urgency": "Routine", "category": "Clinical" },
+        { "code": "FAST_EXAM", "name": "POCUS Focused Assessment with Sonography for Trauma", "urgency": "Stat", "category": "Imaging" },
+        { "code": "CBC_TYPE_SCREEN", "name": "CBC, Type & Screen", "urgency": "Stat", "category": "Lab" }
+      ],
+      "contraindications_or_cautions": "Maintain spinal precautions if high-energy mechanism of injury."
+    },
+    {
+      "complaint_category": "General / Mild Symptoms / Minor Illness",
+      "keywords": ["sore throat", "mild rash", "earache", "medication refill", "mild cough", "sprain"],
+      "suggested_tests": [
+        { "code": "POC_STREP_FLU", "name": "Point-of-Care Viral Swab (if URI)", "urgency": "Routine", "category": "Point of Care" }
+      ],
+      "contraindications_or_cautions": "Fast-track eligible if vitals normal."
+    }
+  ]
+}
