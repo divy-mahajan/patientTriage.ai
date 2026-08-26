@@ -144,6 +144,7 @@ def test_synthetic_patients_csv_exists_and_complete():
         "patient_id", "full_name", "dob", "age", "gender", "arrival_mode", "arrival_timestamp",
         "chief_complaint", "symptoms", "clinician_observations", "known_allergies", "medical_history",
         "heart_rate", "sbp", "dbp", "spo2", "respiratory_rate", "temperature_c", "gcs",
+        "waiting_room_occupancy_ratio",
         "synthetic_esi_level", "synthetic_risk_score", "is_high_risk", "recommended_bed_unit",
         "key_explainability_factors"
     ]

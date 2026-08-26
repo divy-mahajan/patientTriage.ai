@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-PatientTriage.ai — Synthetic Patient Dataset Generator
+PatientTriage.ai — Synthetic Patient Dataset Generator (Realistic Overlap & Capacity)
 
 CLINICAL DISCLAIMER:
-This script generates purely synthetic patient data for prototype design,
+This script generates synthetic patient data for prototype design,
 software architecture validation, and machine learning demonstration.
 It is NOT clinically validated or intended for actual medical decision-making.
 """
@@ -12,6 +12,7 @@ import argparse
 import random
 import csv
 import os
+import math
 from datetime import datetime, timedelta
 
 FIRST_NAMES_MALE = [
@@ -45,30 +46,44 @@ ARRIVAL_MODES = ["Walk-in", "Ambulance (EMS)", "Private Vehicle", "Helicopter (A
 
 
 def generate_single_patient(patient_num: int, target_esi: int, base_time: datetime, rng: random.Random) -> dict:
-    """Generate one synthetic patient record with vitals calibrated to a target ESI level."""
+    """
+    Generate one synthetic patient record with realistic physiological vital overlap,
+    clinical presentation scenarios, and contextual hospital waiting room occupancy.
+    """
     gender = rng.choice(["M", "F"])
     first_name = rng.choice(FIRST_NAMES_MALE if gender == "M" else FIRST_NAMES_FEMALE)
     last_name = rng.choice(LAST_NAMES)
     full_name = f"{last_name}, {first_name}"
     
-    # Age distribution based on acuity
+    # Age distribution based on clinical acuity
     if target_esi == 1:
-        age = rng.choice([rng.randint(45, 88), rng.randint(20, 45), rng.randint(60, 92)])
+        age = rng.choice([rng.randint(45, 88), rng.randint(20, 50), rng.randint(60, 92)])
     elif target_esi == 2:
-        age = rng.choice([rng.randint(35, 85), rng.randint(50, 90), rng.randint(18, 40)])
+        age = rng.choice([rng.randint(35, 85), rng.randint(50, 90), rng.randint(18, 45)])
     elif target_esi == 3:
         age = rng.randint(16, 82)
     elif target_esi == 4:
         age = rng.randint(8, 70)
-    else: # 5
+    else: # Level 5
         age = rng.randint(5, 65)
 
     birth_date = base_time.date() - timedelta(days=int(age * 365.25) + rng.randint(0, 360))
     dob_str = birth_date.strftime("%Y-%m-%d")
 
-    # Time delta
+    # Arrival time progression
     arrival_time = base_time - timedelta(minutes=patient_num * rng.randint(3, 12))
     arrival_str = arrival_time.strftime("%Y-%m-%d %H:%M:%S")
+
+    # Time-of-day dynamic hospital waiting room occupancy ratio (0.15 to 0.95)
+    hour = arrival_time.hour
+    if 8 <= hour <= 12:
+        base_occ = rng.uniform(0.35, 0.65)
+    elif 13 <= hour <= 21:
+        base_occ = rng.uniform(0.60, 0.95)  # Peak volume
+    else:
+        base_occ = rng.uniform(0.15, 0.45)  # Low night volume
+    
+    waiting_room_occupancy_ratio = round(base_occ, 2)
 
     # Allergies & Comorbidities
     if rng.random() < 0.35:
@@ -86,10 +101,12 @@ def generate_single_patient(patient_num: int, target_esi: int, base_time: dateti
     else:
         comorbs = ["None"] if rng.random() < 0.7 else [rng.choice(COMORBIDITIES_LIST)]
 
-    # Acuity-specific profile generation
     explain_factors = []
     
-    if target_esi == 1: # Resuscitation
+    # -------------------------------------------------------------------------
+    # Realistic Acuity Scenarios with Vital Sign Overlap
+    # -------------------------------------------------------------------------
+    if target_esi == 1: # Resuscitation (Immediate life threat)
         arrival_mode = rng.choice(["Ambulance (EMS)", "Ambulance (EMS)", "Helicopter (Air Ambulance)"])
         complaints_pool = [
             ("Cardiac arrest with CPR in progress", ["Unresponsive", "No pulse"], ["Cyanotic", "Pupils fixed", "Agonal breathing"]),
@@ -103,26 +120,28 @@ def generate_single_patient(patient_num: int, target_esi: int, base_time: dateti
         symptoms = scenario[1]
         observations = scenario[2]
 
-        heart_rate = rng.choice([rng.randint(145, 190), rng.randint(25, 42), rng.randint(160, 210)])
-        sbp = rng.randint(45, 78)
-        dbp = max(20, sbp - rng.randint(20, 35))
-        spo2 = rng.randint(62, 83)
-        rr = rng.choice([rng.randint(36, 48), rng.randint(4, 8)])
-        temp_c = round(rng.uniform(34.2, 39.8), 1)
-        gcs = rng.randint(3, 8)
-        risk_score = round(rng.uniform(92.0, 99.8), 1)
+        heart_rate = rng.choice([rng.randint(140, 190), rng.randint(25, 45), rng.randint(155, 205)])
+        sbp = rng.randint(45, 82)
+        dbp = max(20, sbp - rng.randint(18, 35))
+        # SpO2: mostly 65-85%, occasionally 86-94% if already receiving pre-hospital high-flow oxygen
+        spo2 = rng.choice([rng.randint(62, 85), rng.randint(86, 94)])
+        rr = rng.choice([rng.randint(34, 48), rng.randint(4, 8)])
+        temp_c = round(rng.uniform(34.0, 39.8), 1)
+        # GCS: mostly 3-8, occasionally 9-11 in impending airway/shock decompensation
+        gcs = rng.choice([rng.randint(3, 8), rng.randint(3, 8), rng.randint(9, 11)])
+        risk_score = round(rng.uniform(90.0, 99.8), 1)
         is_high_risk = True
         recommended_bed = "Resuscitation Bay"
 
-        explain_factors.append(f"GCS profoundly depressed ({gcs}/15)")
+        explain_factors.append(f"GCS depressed ({gcs}/15)")
         explain_factors.append(f"Severe hypotension (SBP {sbp} mmHg)")
         explain_factors.append(f"Critical hypoxia (SpO2 {spo2}%)")
-        if heart_rate > 140:
+        if heart_rate > 135:
             explain_factors.append(f"Extreme tachycardia (HR {heart_rate} bpm)")
         elif heart_rate < 50:
             explain_factors.append(f"Severe bradycardia (HR {heart_rate} bpm)")
 
-    elif target_esi == 2: # Emergent
+    elif target_esi == 2: # Emergent (High risk, acute chest pain, stroke, sepsis, asthma)
         arrival_mode = rng.choice(["Ambulance (EMS)", "Ambulance (EMS)", "Walk-in", "Private Vehicle"])
         complaints_pool = [
             ("Severe substernal chest pain radiating to left arm", ["Chest Pain", "Shortness of Breath", "Diaphoresis"], ["Pale / Diaphoretic", "Severe distress"]),
@@ -136,34 +155,42 @@ def generate_single_patient(patient_num: int, target_esi: int, base_time: dateti
         symptoms = scenario[1]
         observations = scenario[2]
 
-        heart_rate = rng.choice([rng.randint(112, 142), rng.randint(42, 52)])
+        heart_rate = rng.choice([rng.randint(108, 142), rng.randint(42, 55)])
         if rng.random() < 0.5:
             # Hypotensive emergent presentation
-            sbp = rng.randint(78, 94)
-            dbp = max(35, sbp - rng.randint(22, 38))
+            sbp = rng.randint(76, 96)
+            dbp = max(35, sbp - rng.randint(20, 36))
         else:
             # Hypertensive emergency presentation
-            sbp = rng.randint(185, 230)
+            sbp = rng.randint(180, 230)
             dbp = rng.randint(95, min(125, sbp - 35))
-        spo2 = rng.randint(84, 91) if "asthma" in chief_complaint.lower() or "chest" in chief_complaint.lower() else rng.randint(90, 94)
-        rr = rng.randint(24, 34)
-        temp_c = round(rng.uniform(37.8, 40.1) if "sepsis" in chief_complaint.lower() else rng.uniform(36.4, 38.2), 1)
-        gcs = rng.randint(10, 14)
-        risk_score = round(rng.uniform(75.0, 91.5), 1)
+        
+        # SpO2: 83-96% (respiratory/chest pain 83-92%, stroke/sepsis with supplemental O2 92-96%)
+        spo2 = rng.randint(83, 93) if "asthma" in chief_complaint.lower() or "chest" in chief_complaint.lower() else rng.randint(89, 96)
+        rr = rng.randint(22, 34)
+        temp_c = round(rng.uniform(37.8, 40.1) if "sepsis" in chief_complaint.lower() else rng.uniform(36.4, 38.4), 1)
+        
+        # GCS: 9 to 15 (stroke/sepsis GCS 9-13, severe chest pain alert GCS 14-15 with severe pain/diaphoresis)
+        if "stroke" in chief_complaint.lower() or "unconscious" in chief_complaint.lower():
+            gcs = rng.randint(9, 13)
+        else:
+            gcs = rng.choice([14, 15, 15])
+            
+        risk_score = round(rng.uniform(74.0, 92.0), 1)
         is_high_risk = True
         recommended_bed = "Cardiology Wing" if "chest" in chief_complaint.lower() else "Emergency Department"
 
-        if spo2 < 92:
+        if spo2 < 93:
             explain_factors.append(f"SpO2 below range ({spo2}%)")
-        if heart_rate > 110:
+        if heart_rate > 105:
             explain_factors.append(f"Elevated heart rate ({heart_rate} bpm)")
         if sbp < 95 or sbp > 180:
             explain_factors.append(f"Unstable blood pressure ({sbp}/{dbp} mmHg)")
         if gcs < 15:
             explain_factors.append(f"Altered mental status (GCS {gcs})")
-        explain_factors.append(f"High-acuity symptom cluster ({symptoms[0]})")
+        explain_factors.append(f"High-acuity clinical syndrome ({symptoms[0]})")
 
-    elif target_esi == 3: # Urgent
+    elif target_esi == 3: # Urgent (Multiple resources, moderate pain/fever)
         arrival_mode = rng.choice(["Walk-in", "Walk-in", "Private Vehicle", "Ambulance (EMS)"])
         complaints_pool = [
             ("Severe right lower quadrant abdominal pain with nausea", ["Abdominal Pain", "Nausea", "Low grade fever"], ["Guarding", "Moderate distress"]),
@@ -177,13 +204,14 @@ def generate_single_patient(patient_num: int, target_esi: int, base_time: dateti
         symptoms = scenario[1]
         observations = scenario[2]
 
-        heart_rate = rng.randint(84, 110)
-        sbp = rng.randint(105, 148)
-        dbp = max(50, min(rng.randint(65, 92), sbp - 20))
-        spo2 = rng.randint(93, 97)
-        rr = rng.randint(18, 24)
-        temp_c = round(rng.uniform(36.8, 38.9), 1)
-        gcs = 15
+        heart_rate = rng.randint(80, 114)
+        sbp = rng.randint(102, 152)
+        dbp = max(50, min(rng.randint(62, 94), sbp - 20))
+        # SpO2: 92-98%
+        spo2 = rng.randint(92, 98)
+        rr = rng.randint(16, 24)
+        temp_c = round(rng.uniform(36.8, 39.1), 1)
+        gcs = rng.choice([14, 15, 15, 15])
         risk_score = round(rng.uniform(42.0, 72.0), 1)
         is_high_risk = False
         recommended_bed = "Observation Unit" if "fever" in chief_complaint.lower() or "asthma" in chief_complaint.lower() else "Emergency Department"
@@ -195,7 +223,7 @@ def generate_single_patient(patient_num: int, target_esi: int, base_time: dateti
             explain_factors.append(f"Borderline tachycardia ({heart_rate} bpm)")
         explain_factors.append("Stable vital signs baseline")
 
-    elif target_esi == 4: # Less Urgent
+    elif target_esi == 4: # Less Urgent (Single resource, normal vitals)
         arrival_mode = rng.choice(["Walk-in", "Walk-in", "Private Vehicle"])
         complaints_pool = [
             ("Laceration to left forearm from broken glass, bleeding controlled", ["Laceration", "Localized pain"], ["Calm", "Alert"]),
@@ -209,12 +237,12 @@ def generate_single_patient(patient_num: int, target_esi: int, base_time: dateti
         symptoms = scenario[1]
         observations = scenario[2]
 
-        heart_rate = rng.randint(62, 88)
-        sbp = rng.randint(110, 138)
-        dbp = max(55, min(rng.randint(68, 86), sbp - 20))
-        spo2 = rng.randint(97, 100)
-        rr = rng.randint(14, 18)
-        temp_c = round(rng.uniform(36.5, 37.3), 1)
+        heart_rate = rng.randint(62, 92)
+        sbp = rng.randint(108, 140)
+        dbp = max(55, min(rng.randint(66, 88), sbp - 20))
+        spo2 = rng.randint(96, 100)
+        rr = rng.randint(14, 19)
+        temp_c = round(rng.uniform(36.4, 37.4), 1)
         gcs = 15
         risk_score = round(rng.uniform(18.0, 38.0), 1)
         is_high_risk = False
@@ -223,7 +251,7 @@ def generate_single_patient(patient_num: int, target_esi: int, base_time: dateti
         explain_factors.append("Single diagnostic resource anticipated (X-Ray / Simple Procedure)")
         explain_factors.append("Completely stable vital signs")
 
-    else: # Level 5 - Non Urgent
+    else: # Level 5 - Non Urgent (Zero resources)
         arrival_mode = "Walk-in"
         complaints_pool = [
             ("Request for routine antihypertensive medication prescription refill", ["Medication refill"], ["Comfortable", "Asymptomatic"]),
@@ -237,12 +265,12 @@ def generate_single_patient(patient_num: int, target_esi: int, base_time: dateti
         symptoms = scenario[1]
         observations = scenario[2]
 
-        heart_rate = rng.randint(60, 82)
-        sbp = rng.randint(112, 132)
-        dbp = max(60, min(rng.randint(70, 84), sbp - 20))
-        spo2 = rng.randint(98, 100)
+        heart_rate = rng.randint(58, 86)
+        sbp = rng.randint(110, 134)
+        dbp = max(60, min(rng.randint(68, 86), sbp - 20))
+        spo2 = rng.randint(97, 100)
         rr = rng.randint(12, 16)
-        temp_c = round(rng.uniform(36.5, 37.0), 1)
+        temp_c = round(rng.uniform(36.4, 37.1), 1)
         gcs = 15
         risk_score = round(rng.uniform(4.0, 16.0), 1)
         is_high_risk = False
@@ -271,6 +299,7 @@ def generate_single_patient(patient_num: int, target_esi: int, base_time: dateti
         "respiratory_rate": rr,
         "temperature_c": temp_c,
         "gcs": gcs,
+        "waiting_room_occupancy_ratio": waiting_room_occupancy_ratio,
         "synthetic_esi_level": target_esi,
         "synthetic_risk_score": risk_score,
         "is_high_risk": is_high_risk,
@@ -280,7 +309,7 @@ def generate_single_patient(patient_num: int, target_esi: int, base_time: dateti
 
 
 def generate_dataset(num_records: int = 500, seed: int = 42, output_path: str = "data/synthetic/patients_synthetic.csv"):
-    """Generate a full synthetic patient cohort with realistic ESI distributions."""
+    """Generate a full synthetic patient cohort with realistic ESI distributions and capacity context."""
     rng = random.Random(seed)
     base_time = datetime(2026, 8, 25, 16, 0, 0)
 
@@ -291,7 +320,6 @@ def generate_dataset(num_records: int = 500, seed: int = 42, output_path: str = 
                   [4] * int(num_records * 0.22) + \
                   [5] * int(num_records * 0.10)
     
-    # Pad to exact num_records if rounding difference
     while len(esi_weights) < num_records:
         esi_weights.append(3)
     rng.shuffle(esi_weights)
@@ -302,6 +330,7 @@ def generate_dataset(num_records: int = 500, seed: int = 42, output_path: str = 
         "patient_id", "full_name", "dob", "age", "gender", "arrival_mode", "arrival_timestamp",
         "chief_complaint", "symptoms", "clinician_observations", "known_allergies", "medical_history",
         "heart_rate", "sbp", "dbp", "spo2", "respiratory_rate", "temperature_c", "gcs",
+        "waiting_room_occupancy_ratio",
         "synthetic_esi_level", "synthetic_risk_score", "is_high_risk", "recommended_bed_unit",
         "key_explainability_factors"
     ]
