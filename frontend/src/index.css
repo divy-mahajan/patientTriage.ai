@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-clinical-background text-clinical-text-primary antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Custom scrollbar for high-density clinical views */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #F3F3F6;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #C4C7CE;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #8E919A;
+  }
+}
+
+/* Severity accent border strips */
+.severity-strip-1 { border-left: 4px solid #D32F2F; }
+.severity-strip-2 { border-left: 4px solid #F57C00; }
+.severity-strip-3 { border-left: 4px solid #D97706; }
+.severity-strip-4 { border-left: 4px solid #2E7D32; }
+.severity-strip-5 { border-left: 4px solid #546E7A; }
+
+/* Grid pattern background for bed layout */
+.bg-grid-pattern {
+  background-size: 24px 24px;
+  background-image: 
+    linear-gradient(to right, #E0E2E6 1px, transparent 1px),
+    linear-gradient(to bottom, #E0E2E6 1px, transparent 1px);
+}
