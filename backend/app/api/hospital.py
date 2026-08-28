@@ -1,16 +1,28 @@
 """
-PatientTriage.ai — Hospital Capacity API Endpoints
+PatientTriage.ai — Hospital Capacity & Profile API Endpoints
 """
 
 from fastapi import APIRouter, HTTPException, status
 from backend.app.schemas.hospital import (
     HospitalCapacityResponse,
     HospitalCapacityUpdateRequest,
-    SwapProfileRequest
+    SwapProfileRequest,
+    HospitalProfilesListResponse
 )
 from backend.app.services.hospital_service import hospital_service
 
 router = APIRouter(prefix="/api/hospital", tags=["Hospital Capacity"])
+
+
+@router.get("/profiles", response_model=HospitalProfilesListResponse)
+def list_hospital_profiles():
+    """
+    List all available swappable hospital configuration profiles and the currently active profile.
+    """
+    try:
+        return hospital_service.list_available_profiles()
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 
 @router.get("/capacity", response_model=HospitalCapacityResponse)

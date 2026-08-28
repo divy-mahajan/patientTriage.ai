@@ -30,5 +30,11 @@ class TriageScoreResponse(BaseModel):
     class_probabilities: Dict[str, float]
     top_factors: List[FactorExplanation]
     raw_contributions: Optional[Dict[str, float]] = None
+    age_group: str = Field(..., description="Pediatric (<18), Adult (18-64), or Geriatric (65+)")
+    data_quality: str = Field(..., description="Complete or Limited")
+    data_quality_issues: List[str] = Field(default_factory=list, description="Specific data completeness issues detected")
+    needs_clinician_review: bool = Field(False, description="Whether informational ambiguity or risk necessitates clinician review")
+    review_reason: Optional[str] = Field(None, description="Summary explanation of why clinician review is indicated")
+    age_specific_notes: List[str] = Field(default_factory=list, description="Age-adjusted clinical guidance notes")
     prototype_disclaimer: str
     evaluated_at: datetime = Field(default_factory=datetime.utcnow)

@@ -1,5 +1,5 @@
 """
-PatientTriage.ai — Bed Recommendation & Assignment Schemas
+PatientTriage.ai — Bed Recommendation, Assignment & Release Schemas
 """
 
 from typing import Optional, List, Dict, Any
@@ -9,12 +9,12 @@ from pydantic import BaseModel, Field
 
 class BedRecommendRequest(BaseModel):
     patient_id: Optional[str] = None
-    predicted_triage_level: int = Field(..., ge=1, le=5, example=2)
-    is_high_risk: bool = Field(..., example=True)
-    chief_complaint: str = Field(..., example="Acute severe chest pain with diaphoresis")
-    symptoms: Optional[str] = Field("", example="Chest Pain; Shortness of Breath")
-    medical_history: Optional[str] = Field("", example="Coronary Artery Disease")
-    required_equipment: Optional[List[str]] = Field(default_factory=list, example=["cardiac_monitor", "oxygen_wall"])
+    predicted_triage_level: int = Field(..., ge=1, le=5)
+    is_high_risk: bool = Field(...)
+    chief_complaint: str = Field(...)
+    symptoms: Optional[str] = Field("")
+    medical_history: Optional[str] = Field("")
+    required_equipment: Optional[List[str]] = Field(default_factory=list)
 
 
 class RecommendedBedOption(BaseModel):
@@ -54,4 +54,33 @@ class BedAssignResponse(BaseModel):
     bed_label: str
     status: str
     assigned_at: datetime
+    message: str
+
+
+class BedReleaseRequest(BaseModel):
+    bed_id: str
+    patient_id: Optional[str] = None
+    cleaning_minutes: Optional[int] = 10
+    disposition: Optional[str] = "discharged"
+    notes: Optional[str] = None
+
+
+class BedReleaseResponse(BaseModel):
+    bed_id: str
+    unit_id: str
+    unit_name: str
+    status: str
+    cleaning_minutes_remaining: int
+    message: str
+
+
+class BedCompleteCleaningRequest(BaseModel):
+    bed_id: str
+
+
+class BedCompleteCleaningResponse(BaseModel):
+    bed_id: str
+    unit_id: str
+    unit_name: str
+    status: str
     message: str

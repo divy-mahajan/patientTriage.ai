@@ -1,5 +1,5 @@
 """
-PatientTriage.ai — Bed Recommendation & Assignment Endpoints
+PatientTriage.ai — Bed Recommendation, Assignment, Release & Cleaning Endpoints
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -10,7 +10,11 @@ from backend.app.schemas.bed import (
     BedRecommendRequest,
     BedRecommendResponse,
     BedAssignRequest,
-    BedAssignResponse
+    BedAssignResponse,
+    BedReleaseRequest,
+    BedReleaseResponse,
+    BedCompleteCleaningRequest,
+    BedCompleteCleaningResponse
 )
 from backend.app.services.bed_service import bed_service
 
@@ -39,6 +43,34 @@ def assign_bed(request: BedAssignRequest, db: Session = Depends(get_db)):
     """
     try:
         response = bed_service.assign_bed(db, request)
+        return response
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND if "not found" in str(e).lower() else status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+@router.post("/release", response_model=BedReleaseResponse)
+def release_bed(request: BedReleaseRequest, db: Session = Depends(get_db)):
+    """
+    Release/discharge a patient from an occupied bed, moving the bed to cleaning status.
+    """
+    try:
+        response = bed_service.release_bed(db, request)
+        return response
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND if "not found" in str(e).lower() else status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+@router.post("/complete-cleaning", response_model=BedCompleteCleaningResponse)
+def complete_cleaning(request: BedCompleteCleaningRequest, db: Session = Depends(get_db)):
+    """
+    Complete sanitation on a cleaning bed and restore it to available status.
+    """
+    try:
+        response = bed_service.complete_cleaning(db, request)
         return response
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND if "not found" in str(e).lower() else status.HTTP_400_BAD_REQUEST, detail=str(e))

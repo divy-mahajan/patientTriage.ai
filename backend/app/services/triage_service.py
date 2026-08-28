@@ -1,8 +1,10 @@
 """
-PatientTriage.ai — Triage Service (ML Model Orchestration)
+PatientTriage.ai — Triage Service (ML Model Orchestration & Decision-Support Pipeline)
 
 Orchestrates:
-- Invoking the interpretable Logistic Regression model from model/predictor.py
+- Age-cohort physiological baseline evaluation (Pediatric, Adult, Geriatric)
+- Data Quality & Uncertainty analysis (Complete vs Limited, Zero-History detection)
+- Interpretable ML Logistic Regression scoring from model/predictor.py
 - Injecting live contextual hospital waiting room metrics
 - Persisting TriageAssessment records in SQLite
 - Updating patient workflow status to 'triaged'
@@ -18,6 +20,8 @@ from backend.app.db.models import Patient, TriageAssessment
 from backend.app.schemas.patient import PatientCreate
 from backend.app.schemas.triage import TriageScoreRequest, TriageScoreResponse, FactorExplanation
 from backend.app.services.hospital_service import hospital_service
+from backend.app.services.age_service import age_service
+from backend.app.services.data_quality_service import data_quality_service
 from model.predictor import TriagePredictor
 
 
@@ -35,7 +39,7 @@ class TriageService:
     def score_patient(self, db: Optional[Session], request: TriageScoreRequest) -> TriageScoreResponse:
         """
         Score a patient using either a stored DB patient or a direct patient payload.
-        Injects live hospital capacity context.
+        Performs age-aware baseline analysis, data quality audit, and ML model inference.
         """
         patient_dict: Dict[str, Any] = {}
         target_patient_id = "P-UNSAVED"
@@ -75,13 +79,25 @@ class TriageService:
         else:
             raise ValueError("Must provide either patient_id or patient_data in request")
 
-        # 1. Fetch live hospital capacity context
+        # 1. Evaluate Age Group Context
+        age_eval = age_service.evaluate_age_context(patient_dict)
+        age_group = age_eval["age_group"]
+        age_notes = age_eval["age_specific_notes"]
+
+        # 2. Evaluate Data Quality & Informational Completeness
+        dq_eval = data_quality_service.evaluate_data_quality(patient_dict)
+        data_quality = dq_eval["data_quality"]
+        dq_issues = dq_eval["data_quality_issues"]
+        needs_review = dq_eval["needs_clinician_review"]
+        review_reason = dq_eval["review_reason"]
+
+        # 3. Fetch live hospital capacity context
         capacity_context = hospital_service.get_capacity_state()
 
-        # 2. Run inference with interpretable model
+        # 4. Run inference with interpretable model
         raw_res = self.predictor.predict(patient_dict, hospital_capacity=capacity_context)
 
-        # 3. Format factor explanations
+        # 5. Format factor explanations
         factors = [
             FactorExplanation(
                 factor=f["factor"],
@@ -102,6 +118,12 @@ class TriageService:
             class_probabilities=raw_res["class_probabilities"],
             top_factors=factors,
             raw_contributions=raw_res.get("raw_contributions"),
+            age_group=age_group,
+            data_quality=data_quality,
+            data_quality_issues=dq_issues,
+            needs_clinician_review=needs_review,
+            review_reason=review_reason,
+            age_specific_notes=age_notes,
             prototype_disclaimer=raw_res.get(
                 "prototype_disclaimer",
                 "Generated from synthetic prototype data for development. NOT clinically certified."
@@ -109,7 +131,7 @@ class TriageService:
             evaluated_at=datetime.utcnow()
         )
 
-        # 4. If patient exists in DB, persist assessment and update status
+        # 6. If patient exists in DB, persist assessment and update status
         if db and request.patient_id:
             assessment_record = TriageAssessment(
                 patient_id=request.patient_id,
@@ -126,8 +148,16 @@ class TriageService:
             db.add(assessment_record)
 
             patient_obj = db.query(Patient).filter(Patient.patient_id == request.patient_id).first()
-            if patient_obj and patient_obj.status == "waiting":
-                patient_obj.status = "triaged"
+            if patient_obj:
+                patient_obj.predicted_triage_level = response.predicted_triage_level
+                patient_obj.triage_level_name = response.triage_level_name
+                patient_obj.risk_score = response.risk_score
+                patient_obj.is_high_risk = response.is_high_risk
+                patient_obj.confidence = response.confidence
+                patient_obj.age_group = response.age_group
+                patient_obj.data_quality = response.data_quality
+                if patient_obj.status == "waiting":
+                    patient_obj.status = "triaged"
 
             db.commit()
 

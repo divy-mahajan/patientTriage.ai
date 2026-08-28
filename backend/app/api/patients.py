@@ -22,6 +22,10 @@ def create_patient(patient_in: PatientCreate, db: Session = Depends(get_db)):
     try:
         new_patient = patient_service.create_patient(db, patient_in)
         return new_patient
+    except ValueError as e:
+        if "already exists" in str(e).lower():
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Patient already exists.")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 

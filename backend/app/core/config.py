@@ -31,6 +31,7 @@ class Settings(BaseModel):
     hospital_profiles_dir: str = str(CONFIG_DIR / "hospital_profiles")
     test_rules_path: str = str(TEST_RULES_MATRIX_PATH)
     doctors_roster_path: str = str(DOCTORS_ROSTER_PATH)
+    patients_synthetic_path: str = str(DATA_DIR / "patients_synthetic.csv")
     cors_origins: list = ["*"]
 
 

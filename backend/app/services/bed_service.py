@@ -1,5 +1,5 @@
 """
-PatientTriage.ai — Deterministic Bed Recommendation & Assignment Service
+PatientTriage.ai — Deterministic Bed Recommendation, Assignment & Release Service
 
 Rule-based, explainable clinical bed matching engine that selects the optimal available bed
 based on:
@@ -8,24 +8,26 @@ based on:
 - Unit type affinity (Resuscitation, ED, Cardiology, Observation, General Med)
 - Equipment / capability matching (ventilator, telemetry, cardiac monitor, oxygen wall)
 - Live hospital capacity and bed availability
-
-STRICT CONSTRAINTS:
-Bed assignment is deterministic, rule-based, and explainable — NOT directly predicted by the ML model.
 """
 
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 from sqlalchemy.orm import Session
 
-from backend.app.db.models import Patient, BedAssignment
+from backend.app.db.models import Patient, BedAssignment, AuditLog
 from backend.app.schemas.bed import (
     BedRecommendRequest,
     BedRecommendResponse,
     RecommendedBedOption,
     BedAssignRequest,
-    BedAssignResponse
+    BedAssignResponse,
+    BedReleaseRequest,
+    BedReleaseResponse,
+    BedCompleteCleaningRequest,
+    BedCompleteCleaningResponse
 )
 from backend.app.services.hospital_service import hospital_service
+from backend.app.services.treatment_service import treatment_service
 
 
 # Preferred unit types based on clinical triage level and presentation
@@ -198,6 +200,17 @@ class BedAssignmentService:
         if patient:
             patient.status = "assigned_bed"
 
+        # 5. Audit Log
+        audit = AuditLog(
+            event_type="BED_ASSIGNED",
+            patient_id=request.patient_id,
+            actor="Triage Coordinator",
+            new_state={"bed_id": request.bed_id, "bed_label": bed_label, "unit_name": unit_name},
+            reason=f"Assigned patient {request.patient_id} to {bed_label} ({unit_name})",
+            timestamp=datetime.utcnow()
+        )
+        db.add(audit)
+
         db.commit()
         db.refresh(assignment)
 
@@ -212,6 +225,125 @@ class BedAssignmentService:
             status="active",
             assigned_at=assignment.assigned_at,
             message=f"Patient {request.patient_id} successfully assigned to {bed_label} ({unit_name})."
+        )
+
+    def release_bed(self, db: Session, request: BedReleaseRequest) -> BedReleaseResponse:
+        """
+        Discharge / transfer patient from bed.
+        Moves bed status to 'cleaning' (with turn-around time), closes active assignment,
+        completes active patient treatments, and logs audit record.
+        """
+        # 1. Update hospital capacity state
+        cleaning_mins = request.cleaning_minutes or 10
+        success = hospital_service.set_bed_status(
+            bed_id=request.bed_id,
+            new_status="cleaning",
+            patient_id=None
+        )
+        if not success:
+            raise ValueError(f"Bed ID '{request.bed_id}' not found in active hospital profile")
+
+        # 2. Get bed details
+        capacity = hospital_service.get_capacity_state()
+        unit_name = "General"
+        unit_id = "ED"
+        for u in capacity.get("units", []):
+            for b in u.get("beds", []):
+                if b["bed_id"] == request.bed_id:
+                    unit_name = u["unit_name"]
+                    unit_id = u["unit_id"]
+                    b["cleaning_minutes_remaining"] = cleaning_mins
+                    break
+
+        # 3. Update active assignment
+        patient_id = request.patient_id
+        if not patient_id:
+            active_assign = db.query(BedAssignment).filter(
+                BedAssignment.bed_id == request.bed_id,
+                BedAssignment.status == "active"
+            ).first()
+            if active_assign:
+                patient_id = active_assign.patient_id
+
+        if patient_id:
+            # Update patient status
+            patient = db.query(Patient).filter(Patient.patient_id == patient_id).first()
+            if patient:
+                patient.status = request.disposition or "discharged"
+
+            # Complete active assignment
+            active_assigns = db.query(BedAssignment).filter(
+                BedAssignment.patient_id == patient_id,
+                BedAssignment.status == "active"
+            ).all()
+            for a in active_assigns:
+                a.status = "completed"
+
+            # Complete patient treatments
+            treatment_service.complete_patient_treatments(db, patient_id, reason=request.disposition or "Discharged")
+
+            # Audit Log
+            audit = AuditLog(
+                event_type="BED_RELEASED",
+                patient_id=patient_id,
+                actor="Attending Clinician",
+                new_state={"bed_id": request.bed_id, "disposition": request.disposition or "discharged"},
+                reason=f"Patient {patient_id} released from {request.bed_id}. Bed entered cleaning ({cleaning_mins}m turn-around).",
+                timestamp=datetime.utcnow()
+            )
+            db.add(audit)
+
+        db.commit()
+
+        return BedReleaseResponse(
+            bed_id=request.bed_id,
+            unit_id=unit_id,
+            unit_name=unit_name,
+            status="cleaning",
+            cleaning_minutes_remaining=cleaning_mins,
+            message=f"Bed {request.bed_id} released and entered cleaning status."
+        )
+
+    def complete_cleaning(self, db: Session, request: BedCompleteCleaningRequest) -> BedCompleteCleaningResponse:
+        """
+        Complete bed cleaning and restore bed to 'available' status.
+        """
+        success = hospital_service.set_bed_status(
+            bed_id=request.bed_id,
+            new_status="available",
+            patient_id=None
+        )
+        if not success:
+            raise ValueError(f"Bed ID '{request.bed_id}' not found in active hospital profile")
+
+        capacity = hospital_service.get_capacity_state()
+        unit_name = "General"
+        unit_id = "ED"
+        for u in capacity.get("units", []):
+            for b in u.get("beds", []):
+                if b["bed_id"] == request.bed_id:
+                    unit_name = u["unit_name"]
+                    unit_id = u["unit_id"]
+                    b["cleaning_minutes_remaining"] = 0
+                    break
+
+        audit = AuditLog(
+            event_type="BED_CLEANING_COMPLETED",
+            patient_id=None,
+            actor="Sanitation / Nursing",
+            new_state={"bed_id": request.bed_id, "status": "available"},
+            reason=f"Sanitization completed for {request.bed_id}. Restored to available inventory.",
+            timestamp=datetime.utcnow()
+        )
+        db.add(audit)
+        db.commit()
+
+        return BedCompleteCleaningResponse(
+            bed_id=request.bed_id,
+            unit_id=unit_id,
+            unit_name=unit_name,
+            status="available",
+            message=f"Bed {request.bed_id} is now cleaned and available for intake."
         )
 
 
