@@ -21,8 +21,8 @@ export const CaseloadBarChart = ({ doctors = [] }) => {
       {/* Overview Stat */}
       <div className="flex items-center justify-between border-b border-clinical-border pb-3">
         <div className="flex items-center gap-2">
-          <Users className="h-4 w-4 text-clinical-primary-container" />
-          <span className="text-xs font-bold text-clinical-text-primary">
+          <Users className="h-4 w-4 text-blue-600" />
+          <span className="text-xs font-bold text-slate-900">
             Department Staffing Utilization ({activeDocs.length} MDs On Shift)
           </span>
         </div>
@@ -60,7 +60,7 @@ export const CaseloadBarChart = ({ doctors = [] }) => {
                 <div
                   style={{ width: `${Math.min(100, pct)}%` }}
                   className={`h-full rounded-full transition-all duration-500 ${
-                    isOverloaded ? 'bg-red-600' : isHeavy ? 'bg-amber-500' : 'bg-clinical-primary-container'
+                    isOverloaded ? 'bg-red-600' : isHeavy ? 'bg-amber-500' : 'bg-blue-600'
                   }`}
                 />
               </div>

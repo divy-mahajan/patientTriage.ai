@@ -1,21 +1,35 @@
 import axios from 'axios';
 
-const api = axios.create({
-  baseURL: '/api',
+const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
+const client = axios.create({
+  baseURL: `${API_BASE}/api`,
   timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
+// Request interceptor for auth token
+client.interceptors.request.use((config) => {
+  const token = localStorage.getItem('pt_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 // Response interceptor for consistent error messaging
-api.interceptors.response.use(
+client.interceptors.response.use(
   (response) => response.data,
   (error) => {
-    const errorMsg = error.response?.data?.detail || error.message || 'An unexpected API error occurred';
-    console.error('API Error:', errorMsg, error);
+    const errorMsg =
+      error.response?.data?.detail ||
+      error.message ||
+      'Unable to connect to the backend triage server. Please ensure FastAPI is running on http://127.0.0.1:8000.';
+    console.error('API Error:', errorMsg);
     return Promise.reject(new Error(errorMsg));
   }
 );
 
-export default api;
+export default client;

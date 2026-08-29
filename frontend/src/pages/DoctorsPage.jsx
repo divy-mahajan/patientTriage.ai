@@ -13,10 +13,9 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { useHospital } from '../context/HospitalContext';
-import { doctorsApi } from '../api/doctorsApi';
-import DoctorShiftCard from '../components/doctors/DoctorShiftCard';
-import CaseloadBarChart from '../components/doctors/CaseloadBarChart';
-import DoctorCheckInModal from '../components/doctors/DoctorCheckInModal';
+import DoctorShiftCard from '../components/doctors/Doctorshiftcard';
+import CaseloadBarChart from '../components/doctors/Caseloadbarchart';
+import DoctorCheckInModal from '../components/doctors/Doctorscheckinmodal';
 
 export const DoctorsPage = () => {
   const location = useLocation();

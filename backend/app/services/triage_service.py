@@ -3,7 +3,7 @@ PatientTriage.ai — Triage Service (ML Model Orchestration & Decision-Support P
 
 Orchestrates:
 - Age-cohort physiological baseline evaluation (Pediatric, Adult, Geriatric)
-- Data Quality & Uncertainty analysis (Complete vs Limited, Zero-History detection)
+- Data Quality & Uncertainty analysis (Complete vs Limited, Zero-History, OOV detection)
 - Interpretable ML Logistic Regression scoring from model/predictor.py
 - Injecting live contextual hospital waiting room metrics
 - Persisting TriageAssessment records in SQLite
@@ -108,6 +108,10 @@ class TriageService:
             for f in raw_res.get("top_factors", [])
         ]
 
+        # Combine review reasons
+        combined_review_reason = review_reason or raw_res.get("uncertainty_reason")
+        combined_needs_review = bool(needs_review or raw_res.get("needs_clinician_review", False))
+
         response = TriageScoreResponse(
             patient_id=target_patient_id,
             predicted_triage_level=raw_res["predicted_triage_level"],
@@ -121,12 +125,16 @@ class TriageService:
             age_group=age_group,
             data_quality=data_quality,
             data_quality_issues=dq_issues,
-            needs_clinician_review=needs_review,
-            review_reason=review_reason,
+            needs_clinician_review=combined_needs_review,
+            review_reason=combined_review_reason,
+            uncertainty_reason=raw_res.get("uncertainty_reason"),
+            input_classification=dq_eval.get("input_classification", raw_res.get("input_classification", {})),
+            is_unseen_input=raw_res.get("is_unseen_input", False),
+            missing_fields=dq_eval.get("missing_fields", []),
             age_specific_notes=age_notes,
             prototype_disclaimer=raw_res.get(
                 "prototype_disclaimer",
-                "Generated from synthetic prototype data for development. NOT clinically certified."
+                "Generated from synthetic prototype data for development and architecture demonstration. NOT clinically certified."
             ),
             evaluated_at=datetime.utcnow()
         )

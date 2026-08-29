@@ -15,6 +15,7 @@ import {
   ShieldCheck
 } from 'lucide-react';
 import { useHospital } from '../context/HospitalContext';
+import { auditApi } from '../api/auditApi';
 import SeverityBadge from '../components/common/SeverityBadge';
 
 export const AuditPage = () => {
@@ -22,6 +23,21 @@ export const AuditPage = () => {
 
   const [searchPatientId, setSearchPatientId] = useState('');
   const [selectedActionType, setSelectedActionType] = useState('all');
+  const [liveLogs, setLiveLogs] = useState([]);
+
+  useEffect(() => {
+    const loadAuditLogs = async () => {
+      try {
+        const res = await auditApi.listLogs();
+        if (res?.logs?.length > 0) {
+          setLiveLogs(res.logs);
+        }
+      } catch (err) {
+        console.warn('Could not fetch live audit logs from backend, using synthesized stream:', err.message);
+      }
+    };
+    loadAuditLogs();
+  }, []);
 
   // Synthesize rich audit timeline events from stored patient workflows
   const auditEvents = useMemo(() => {

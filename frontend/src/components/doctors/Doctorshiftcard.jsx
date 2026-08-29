@@ -27,8 +27,8 @@ export const DoctorShiftCard = ({
       onClick={onSelect}
       className={`rounded-xl border p-4 bg-white shadow-2xs transition-all duration-150 flex flex-col justify-between cursor-pointer ${
         isSelected
-          ? 'border-clinical-primary-container ring-2 ring-blue-500/30 shadow-md'
-          : 'border-clinical-border hover:border-slate-400 hover:shadow-xs'
+          ? 'border-blue-600 ring-2 ring-blue-500/30 shadow-md'
+          : 'border-slate-200 hover:border-slate-400 hover:shadow-xs'
       }`}
     >
       <div>
@@ -44,10 +44,10 @@ export const DoctorShiftCard = ({
               }`} />
             </div>
             <div className="min-w-0">
-              <h4 className="text-xs sm:text-sm font-bold text-clinical-text-primary truncate">
+              <h4 className="text-xs sm:text-sm font-bold text-slate-900 truncate">
                 {doctor.name}
               </h4>
-              <p className="text-xs text-clinical-primary-container font-semibold truncate">
+              <p className="text-xs text-blue-700 font-semibold truncate">
                 {doctor.specialty}
               </p>
             </div>
@@ -89,7 +89,7 @@ export const DoctorShiftCard = ({
               e.stopPropagation();
               onQuickAssign(doctor);
             }}
-            className="inline-flex items-center gap-1 rounded bg-blue-50 px-2 py-1 text-xs font-bold text-clinical-primary-container hover:bg-blue-100 transition"
+            className="inline-flex items-center gap-1 rounded bg-blue-50 px-2 py-1 text-xs font-bold text-blue-700 hover:bg-blue-100 transition cursor-pointer"
           >
             <Plus className="h-3.5 w-3.5" />
             Assign

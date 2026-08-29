@@ -145,6 +145,18 @@ export const SurgePage = () => {
             >
               Critical
             </button>
+            <button
+              type="button"
+              disabled={updating}
+              onClick={() => handleSetSurge('disaster')}
+              className={`rounded-lg px-3 py-1.5 text-xs font-bold transition ${
+                currentSurge === 'disaster'
+                  ? 'bg-purple-600 text-white shadow-xs'
+                  : 'text-white/80 hover:text-white'
+              }`}
+            >
+              Disaster
+            </button>
           </div>
         </div>
       </div>

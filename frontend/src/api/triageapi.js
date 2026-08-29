@@ -1,10 +1,19 @@
-import api from './client';
+import client from './client';
 
 export const triageApi = {
-  scorePatient: ({ patientId, patientData }) => {
-    const payload = {};
-    if (patientId) payload.patient_id = patientId;
-    if (patientData) payload.patient_data = patientData;
-    return api.post('/triage/score', payload);
+  scorePatient: (patientIdOrData) => {
+    let body = {};
+    if (typeof patientIdOrData === 'string') {
+      body = { patient_id: patientIdOrData };
+    } else if (patientIdOrData?.patient_id && !patientIdOrData?.heart_rate) {
+      body = { patient_id: patientIdOrData.patient_id };
+    } else if (patientIdOrData?.patientId) {
+      body = { patient_id: patientIdOrData.patientId };
+    } else {
+      body = { patient_data: patientIdOrData };
+    }
+    return client.post('/triage/score', body);
   },
 };
+
+export default triageApi;

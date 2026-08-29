@@ -547,9 +547,14 @@ class ReassessmentService:
         cap = hospital_service.get_capacity_state()
         surge_status = cap.get("surge_status", "normal")
 
+        seen_patients = set()
         for p in patients:
+            if p.patient_id in seen_patients:
+                continue
+
             status_info = ReassessmentService.get_patient_monitoring_status(db, p)
             if status_info.is_deteriorating:
+                seen_patients.add(p.patient_id)
                 alerts.append(
                     ReassessmentAlert(
                         alert_id=f"ALT-DET-{p.patient_id}",
@@ -566,6 +571,7 @@ class ReassessmentService:
                     )
                 )
             elif status_info.is_reassessment_due:
+                seen_patients.add(p.patient_id)
                 alerts.append(
                     ReassessmentAlert(
                         alert_id=f"ALT-DUE-{p.patient_id}",

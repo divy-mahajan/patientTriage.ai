@@ -1,5 +1,5 @@
 """
-PatientTriage.ai — Feature Preparation Pipeline
+PatientTriage.ai — Robust Feature Preparation & OOV Preprocessing Pipeline
 
 Extracts, engineers, and standardizes interpretable clinical features from raw
 patient intake records and contextual hospital capacity snapshots.
@@ -8,10 +8,16 @@ STRICT CONSTRAINTS:
 Target/label fields (synthetic_esi_level, synthetic_risk_score, is_high_risk,
 recommended_bed_unit, key_explainability_factors) and raw identifiers
 (patient_id, full_name, dob, arrival_timestamp) MUST NEVER be used as model inputs.
+
+ROBUSTNESS & OOV STRATEGY:
+- Handles unseen, novel, or vague symptoms gracefully without feature encoding errors.
+- Never raises exceptions on missing fields, NoneType, or empty strings.
+- Distinguishes KNOWN INPUT, UNKNOWN/UNSEEN INPUT, and MISSING INPUT.
+- Preserves balanced 5-level triage distribution.
 """
 
 import re
-from typing import Dict, List, Tuple, Any, Optional
+from typing import Dict, List, Tuple, Any, Optional, Set
 import numpy as np
 import pandas as pd
 import model._bootstrap  # noqa: F401
@@ -79,70 +85,194 @@ NUMERICAL_COLS = [
     "waiting_room_occupancy_ratio"
 ]
 
+# Standard Adult Physiological Baselines (used only as safe fallbacks when inputs are missing)
+DEFAULT_VITALS = {
+    "heart_rate": 75.0,
+    "sbp": 120.0,
+    "dbp": 80.0,
+    "spo2": 98.0,
+    "respiratory_rate": 16.0,
+    "temperature_c": 37.0,
+    "gcs": 15.0,
+    "age": 40.0
+}
+
+# Known Clinical Syndrome Keyword Dictionaries
+KNOWN_CHEST_PAIN_KEYWORDS = [
+    "chest pain", "angina", "substernal", "myocardial", "cardiac arrest",
+    "heart attack", "crushing chest", "coronary", "palpitation"
+]
+
+KNOWN_RESPIRATORY_KEYWORDS = [
+    "shortness of breath", "dyspnea", "wheezing", "stridor", "asthma",
+    "asphyxiation", "respiratory distress", "suffocating", "hypoxemia", "copd exacerbation"
+]
+
+KNOWN_STROKE_NEURO_KEYWORDS = [
+    "stroke", "hemiplegia", "hemiparesis", "facial droop", "slurred speech",
+    "syncope", "unconscious", "unresponsive", "seizure", "altered mental",
+    "aphasia", "dysarthria", "focal weakness", "coma"
+]
+
+KNOWN_TRAUMA_KEYWORDS = [
+    "trauma", "motor vehicle", "collision", "fall", "fracture", "hemorrhage",
+    "laceration", "wound", "gunshot", "stab", "polytrauma", "active bleeding"
+]
+
+KNOWN_SEPSIS_KEYWORDS = [
+    "sepsis", "high fever", "chills", "rigors", "pyelonephritis", "bacteremia",
+    "systemic infection", "urosepsis", "febrile neutropenia"
+]
+
+KNOWN_ABDOMINAL_KEYWORDS = [
+    "abdominal pain", "flank pain", "renal colic", "vomiting", "hematemesis",
+    "melena", "acute abdomen", "guarding", "rebound tenderness", "appendicitis"
+]
+
+KNOWN_LOW_ACUITY_KEYWORDS = [
+    "suture removal", "minor rash", "dressing change", "earache", "sore throat",
+    "mild sprain", "twisted ankle", "prescription refill", "insect bite", "abrasion",
+    "cold symptoms", "congestion", "mild cough", "superficial cut", "routine"
+]
+
+
+def safe_float(val: Any, default: float = 0.0) -> float:
+    """Safely convert any input (None, string, int, float) to float without raising exceptions."""
+    if val is None or val == "":
+        return float(default)
+    try:
+        f = float(val)
+        return float(default) if np.isnan(f) or np.isinf(f) else f
+    except (ValueError, TypeError):
+        return float(default)
+
+
+def classify_input_text(text: str) -> str:
+    """
+    Classify input clinical text into KNOWN, UNKNOWN/UNSEEN, or MISSING.
+    """
+    if not text or not str(text).strip() or str(text).strip().lower() in ["none", "n/a", "nil", "null"]:
+        return "MISSING"
+
+    t = str(text).lower()
+    all_known_keywords = (
+        KNOWN_CHEST_PAIN_KEYWORDS +
+        KNOWN_RESPIRATORY_KEYWORDS +
+        KNOWN_STROKE_NEURO_KEYWORDS +
+        KNOWN_TRAUMA_KEYWORDS +
+        KNOWN_SEPSIS_KEYWORDS +
+        KNOWN_ABDOMINAL_KEYWORDS +
+        KNOWN_LOW_ACUITY_KEYWORDS
+    )
+
+    if any(kw in t for kw in all_known_keywords):
+        return "KNOWN"
+    
+    # Text is provided but does not match any recognized clinical syndrome lexicon
+    return "UNKNOWN/UNSEEN"
+
+
+def inspect_patient_inputs(record: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Analyze patient record completeness and identify input classification status.
+    """
+    complaint_raw = record.get("chief_complaint")
+    symptoms_raw = record.get("symptoms")
+    obs_raw = record.get("clinician_observations")
+    history_raw = record.get("medical_history")
+
+    complaint_status = classify_input_text(complaint_raw)
+    symptoms_status = classify_input_text(symptoms_raw)
+    obs_status = classify_input_text(obs_raw)
+
+    missing_fields: List[str] = []
+    vital_keys = ["heart_rate", "sbp", "dbp", "spo2", "respiratory_rate", "gcs"]
+    for vk in vital_keys:
+        val = record.get(vk)
+        if val is None or val == "":
+            missing_fields.append(vk)
+
+    has_unseen = (complaint_status == "UNKNOWN/UNSEEN") or (symptoms_status == "UNKNOWN/UNSEEN")
+
+    input_classification = {
+        "chief_complaint": complaint_status,
+        "symptoms": symptoms_status,
+        "vital_signs": "MISSING" if len(missing_fields) > 0 else "KNOWN",
+        "clinician_observations": obs_status,
+        "medical_history": "MISSING" if not history_raw or str(history_raw).lower() in ["none", "none known", "n/a"] else "KNOWN"
+    }
+
+    return {
+        "input_classification": input_classification,
+        "is_unseen_input": has_unseen,
+        "missing_fields": missing_fields
+    }
+
 
 def extract_features_from_record(record: Dict[str, Any], waiting_room_ratio: float = 0.50) -> Dict[str, float]:
     """
     Transform a single raw patient intake dictionary into a flat numerical/binary feature dictionary.
+    Guarantees zero exceptions on malformed, missing, or out-of-vocabulary inputs.
     Guarantees no target or identifier leakage.
     """
-    # 1. Vital Signs
-    hr = float(record.get("heart_rate", 75.0))
-    sbp = float(record.get("sbp", 120.0))
-    dbp = float(record.get("dbp", 80.0))
-    spo2 = float(record.get("spo2", 98.0))
-    rr = float(record.get("respiratory_rate", 16.0))
-    temp_c = float(record.get("temperature_c", 37.0))
-    gcs = float(record.get("gcs", 15.0))
+    # 1. Vital Signs with safe fallbacks
+    hr = safe_float(record.get("heart_rate"), DEFAULT_VITALS["heart_rate"])
+    sbp = safe_float(record.get("sbp"), DEFAULT_VITALS["sbp"])
+    dbp = safe_float(record.get("dbp"), DEFAULT_VITALS["dbp"])
+    spo2 = safe_float(record.get("spo2"), DEFAULT_VITALS["spo2"])
+    rr = safe_float(record.get("respiratory_rate"), DEFAULT_VITALS["respiratory_rate"])
+    temp_c = safe_float(record.get("temperature_c"), DEFAULT_VITALS["temperature_c"])
+    gcs = safe_float(record.get("gcs"), DEFAULT_VITALS["gcs"])
     
     pulse_pressure = sbp - dbp
     map_bp = (2.0 * dbp + sbp) / 3.0
 
     # 2. Demographics & Arrival Mode
-    age = float(record.get("age", 40.0))
+    age = safe_float(record.get("age"), DEFAULT_VITALS["age"])
     is_geriatric = 1.0 if age >= 65.0 else 0.0
     is_pediatric = 1.0 if age < 18.0 else 0.0
     
-    gender_raw = str(record.get("gender", "")).strip().upper()
+    gender_raw = str(record.get("gender", "") or "").strip().upper()
     gender_is_female = 1.0 if gender_raw == "F" else 0.0
     
-    arrival_mode = str(record.get("arrival_mode", "")).lower()
+    arrival_mode = str(record.get("arrival_mode", "") or "").lower()
     is_ambulance_or_air = 1.0 if ("ambulance" in arrival_mode or "helicopter" in arrival_mode) else 0.0
 
-    # 3. Chief Complaint & Symptoms text parsing
+    # 3. Chief Complaint & Symptoms text parsing (robust matching)
     text_corpus = (
-        str(record.get("chief_complaint", "")) + " " +
-        str(record.get("symptoms", ""))
+        str(record.get("chief_complaint", "") or "") + " " +
+        str(record.get("symptoms", "") or "")
     ).lower()
 
-    flag_chest_pain = 1.0 if any(k in text_corpus for k in ["chest pain", "angina", "substernal", "myocardial", "cardiac arrest"]) else 0.0
-    flag_respiratory = 1.0 if any(k in text_corpus for k in ["shortness of breath", "dyspnea", "wheezing", "stridor", "asthma", "asphyxiation", "respiratory"]) else 0.0
-    flag_stroke = 1.0 if any(k in text_corpus for k in ["stroke", "hemiplegia", "hemiparesis", "facial droop", "slurred speech", "syncope", "unconscious", "unresponsive"]) else 0.0
-    flag_trauma = 1.0 if any(k in text_corpus for k in ["trauma", "motor vehicle", "collision", "fall", "fracture", "hemorrhage", "laceration", "wound"]) else 0.0
-    flag_sepsis = 1.0 if any(k in text_corpus for k in ["sepsis", "high fever", "chills", "rigors", "pyelonephritis"]) else 0.0
-    flag_abdominal = 1.0 if any(k in text_corpus for k in ["abdominal pain", "flank pain", "renal colic", "vomiting", "hematemesis", "melena"]) else 0.0
+    flag_chest_pain = 1.0 if any(k in text_corpus for k in KNOWN_CHEST_PAIN_KEYWORDS) else 0.0
+    flag_respiratory = 1.0 if any(k in text_corpus for k in KNOWN_RESPIRATORY_KEYWORDS) else 0.0
+    flag_stroke = 1.0 if any(k in text_corpus for k in KNOWN_STROKE_NEURO_KEYWORDS) else 0.0
+    flag_trauma = 1.0 if any(k in text_corpus for k in KNOWN_TRAUMA_KEYWORDS) else 0.0
+    flag_sepsis = 1.0 if any(k in text_corpus for k in KNOWN_SEPSIS_KEYWORDS) else 0.0
+    flag_abdominal = 1.0 if any(k in text_corpus for k in KNOWN_ABDOMINAL_KEYWORDS) else 0.0
 
     # 4. Clinician Observations
-    obs_raw = str(record.get("clinician_observations", "")).lower()
+    obs_raw = str(record.get("clinician_observations", "") or "").lower()
     obs_cyanotic = 1.0 if "cyanotic" in obs_raw else 0.0
     obs_pale = 1.0 if ("pale" in obs_raw or "diaphoretic" in obs_raw) else 0.0
     obs_unresponsive = 1.0 if ("unresponsive" in obs_raw or "lethargic" in obs_raw or "unconscious" in obs_raw) else 0.0
     obs_confused = 1.0 if "confused" in obs_raw else 0.0
-    obs_labored = 1.0 if ("labored" in obs_raw or "tripod" in obs_raw or "respirations" in obs_raw) else 0.0
+    obs_labored = 1.0 if ("labored" in obs_raw or "tripod" in obs_raw or "retractions" in obs_raw) else 0.0
 
     # 5. Medical History & Allergies
-    med_hist = str(record.get("medical_history", "")).lower()
-    comorbs = [c.strip() for c in med_hist.split(";") if c.strip() and c.strip() != "none"]
+    med_hist = str(record.get("medical_history", "") or "").lower()
+    comorbs = [c.strip() for c in med_hist.split(";") if c.strip() and c.strip() not in ["none", "none known", "n/a"]]
     comorbidity_count = float(len(comorbs))
     
-    flag_cardiac_hist = 1.0 if any(k in med_hist for k in ["coronary", "heart failure", "atrial fibrillation", "infarction"]) else 0.0
-    flag_pulmonary_hist = 1.0 if any(k in med_hist for k in ["copd", "asthma"]) else 0.0
+    flag_cardiac_hist = 1.0 if any(k in med_hist for k in ["coronary", "heart failure", "atrial fibrillation", "infarction", "cad", "chf"]) else 0.0
+    flag_pulmonary_hist = 1.0 if any(k in med_hist for k in ["copd", "asthma", "emphysema"]) else 0.0
     flag_diabetes_hist = 1.0 if any(k in med_hist for k in ["diabetes", "kidney", "ckd", "hypertension"]) else 0.0
 
-    allergies = str(record.get("known_allergies", "")).lower()
-    has_allergies = 1.0 if (allergies and "none" not in allergies) else 0.0
+    allergies = str(record.get("known_allergies", "") or "").lower()
+    has_allergies = 1.0 if (allergies and "none" not in allergies and "n/a" not in allergies) else 0.0
 
     # Contextual hospital capacity
-    wr_ratio = float(record.get("waiting_room_occupancy_ratio", waiting_room_ratio))
+    wr_ratio = safe_float(record.get("waiting_room_occupancy_ratio"), waiting_room_ratio)
 
     return {
         "heart_rate": hr,

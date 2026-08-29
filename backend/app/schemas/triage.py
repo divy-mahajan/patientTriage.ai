@@ -35,6 +35,12 @@ class TriageScoreResponse(BaseModel):
     data_quality_issues: List[str] = Field(default_factory=list, description="Specific data completeness issues detected")
     needs_clinician_review: bool = Field(False, description="Whether informational ambiguity or risk necessitates clinician review")
     review_reason: Optional[str] = Field(None, description="Summary explanation of why clinician review is indicated")
+    uncertainty_reason: Optional[str] = Field(None, description="Clinical reason for model uncertainty penalty if applicable")
+    input_classification: Dict[str, str] = Field(default_factory=dict, description="Status for key inputs: KNOWN, UNKNOWN/UNSEEN, or MISSING")
+    is_unseen_input: bool = Field(False, description="Whether unseen or out-of-vocabulary symptoms were parsed")
+    missing_fields: List[str] = Field(default_factory=list, description="List of missing required fields")
     age_specific_notes: List[str] = Field(default_factory=list, description="Age-adjusted clinical guidance notes")
-    prototype_disclaimer: str
+    prototype_disclaimer: str = Field(
+        "Generated from synthetic prototype data for development and architecture demonstration. NOT clinically certified."
+    )
     evaluated_at: datetime = Field(default_factory=datetime.utcnow)

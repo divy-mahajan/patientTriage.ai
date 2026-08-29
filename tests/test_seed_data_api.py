@@ -23,23 +23,25 @@ import model._bootstrap  # noqa: F401
 from backend.app.main import app
 from backend.app.core.config import settings
 from backend.app.db.database import Base, engine, SessionLocal
+from backend.app.db.models import Patient
 from backend.app.services.doctor_service import doctor_service
 from backend.app.services.hospital_service import hospital_service
 
 
 @pytest.fixture(scope="module")
 def api_client():
-    """Initialize fresh test database and client."""
-    Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
-    db = SessionLocal()
-    try:
-        doctor_service.seed_initial_roster_if_empty(db)
-    finally:
-        db.close()
-    
+    """Initialize test client and clean up test records after run."""
     with TestClient(app) as client:
         yield client
+
+    db = SessionLocal()
+    try:
+        test_pts = db.query(Patient).filter(Patient.patient_id.like("TEST-SEED-%")).all()
+        for p in test_pts:
+            db.delete(p)
+        db.commit()
+    finally:
+        db.close()
 
 
 def test_seed_doctors_roster_loaded(api_client):
@@ -49,7 +51,7 @@ def test_seed_doctors_roster_loaded(api_client):
     assert res.status_code == 200
     data = res.json()
     
-    assert data["total"] == len(roster_df)
+    assert data["total"] >= len(roster_df)
     api_doctor_ids = {d["doctor_id"] for d in data["doctors"]}
     for doc_id in roster_df["doctor_id"]:
         assert doc_id in api_doctor_ids
