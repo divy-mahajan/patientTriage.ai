@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Bell,
   RefreshCw,
@@ -8,11 +9,15 @@ import {
   UserCheck,
   CheckCircle2,
   AlertTriangle,
-  Info
+  Info,
+  PanelLeft,
+  LogIn,
+  LogOut
 } from 'lucide-react';
 import { useHospital, CLINICIAN_PERSONAS } from '../../context/HospitalContext';
 
-export const TopNavBar = () => {
+export const TopNavBar = ({ isCollapsed = false, onToggleSidebar }) => {
+  const navigate = useNavigate();
   const {
     capacity,
     refreshAll,
@@ -20,6 +25,7 @@ export const TopNavBar = () => {
     swapProfile,
     currentUser,
     setCurrentUser,
+    logout,
     notifications
   } = useHospital();
 
@@ -39,12 +45,23 @@ export const TopNavBar = () => {
 
   return (
     <header className="sticky top-0 z-20 flex h-16 w-full items-center justify-between border-b border-clinical-border bg-white px-6">
-      {/* Left: Department & Hospital Profile Swapper */}
-      <div className="flex items-center gap-4">
+      {/* Left: Sidebar Toggle & Department / Hospital Profile Swapper */}
+      <div className="flex items-center gap-3">
+        {onToggleSidebar && (
+          <button
+            type="button"
+            onClick={onToggleSidebar}
+            title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+            className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition cursor-pointer border border-slate-200 shadow-2xs"
+          >
+            <PanelLeft className="h-4 w-4" />
+          </button>
+        )}
+
         <div className="relative">
           <button
             onClick={() => setShowProfileMenu(!showProfileMenu)}
-            className="flex items-center gap-2 rounded-lg border border-clinical-border bg-slate-50 px-3 py-1.5 text-xs font-bold text-clinical-text-primary hover:bg-slate-100 transition shadow-2xs"
+            className="flex items-center gap-2 rounded-lg border border-clinical-border bg-slate-50 px-3 py-1.5 text-xs font-bold text-clinical-text-primary hover:bg-slate-100 transition shadow-2xs cursor-pointer"
           >
             <Building2 className="h-4 w-4 text-clinical-primary-container" />
             <span className="truncate max-w-[200px] sm:max-w-none">
@@ -210,7 +227,7 @@ export const TopNavBar = () => {
                     setCurrentUser(person);
                     setShowUserMenu(false);
                   }}
-                  className={`w-full flex items-center gap-2.5 rounded-lg p-2 text-left text-xs transition ${
+                  className={`w-full flex items-center gap-2.5 rounded-lg p-2 text-left text-xs transition cursor-pointer ${
                     currentUser.id === person.id ? 'bg-blue-50 text-clinical-primary-container font-bold' : 'text-slate-700 hover:bg-slate-100'
                   }`}
                 >
@@ -221,6 +238,30 @@ export const TopNavBar = () => {
                   </div>
                 </button>
               ))}
+
+              <div className="pt-2 mt-2 border-t border-slate-100 flex flex-col gap-1">
+                <button
+                  onClick={() => {
+                    setShowUserMenu(false);
+                    navigate('/login');
+                  }}
+                  className="w-full flex items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs font-bold text-blue-700 hover:bg-blue-50 transition cursor-pointer"
+                >
+                  <LogIn className="h-3.5 w-3.5" />
+                  <span>Clinician Sign-In Screen</span>
+                </button>
+                <button
+                  onClick={async () => {
+                    setShowUserMenu(false);
+                    if (logout) await logout();
+                    navigate('/login');
+                  }}
+                  className="w-full flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs font-semibold text-red-600 hover:bg-red-50 transition cursor-pointer"
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+                  <span>Sign Out Session</span>
+                </button>
+              </div>
             </div>
           )}
         </div>

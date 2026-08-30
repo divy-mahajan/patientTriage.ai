@@ -4,14 +4,14 @@ PatientTriage.ai — Patient Intake & Record Schemas
 
 from typing import Optional, List
 from datetime import datetime
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, model_validator
 
 
 class PatientCreate(BaseModel):
     patient_id: Optional[str] = None
     full_name: str = Field(..., min_length=1, max_length=128)
     dob: Optional[str] = Field(None)
-    age: int = Field(..., ge=0, le=125)
+    age: Optional[int] = Field(None, ge=0, le=125)
     gender: str = Field(...)
     arrival_mode: str = Field(...)
     arrival_timestamp: Optional[datetime] = None
@@ -29,6 +29,19 @@ class PatientCreate(BaseModel):
     respiratory_rate: float = Field(..., ge=2.0, le=80.0)
     temperature_c: float = Field(37.0, ge=25.0, le=45.0)
     gcs: float = Field(15.0, ge=3.0, le=15.0)
+
+    @model_validator(mode='after')
+    def compute_age_if_missing(self):
+        if self.age is None:
+            if self.dob:
+                try:
+                    birth_year = int(self.dob.split('-')[0])
+                    self.age = max(0, datetime.now().year - birth_year)
+                except Exception:
+                    self.age = 35
+            else:
+                self.age = 35
+        return self
 
 
 class PatientResponse(BaseModel):

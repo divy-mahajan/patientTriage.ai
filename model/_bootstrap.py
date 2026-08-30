@@ -1,10 +1,17 @@
 """
-Windows Anaconda DLL path configuration helper.
-Ensures standard Anaconda C/C++ runtime DLL paths are present on Windows PATH and DLL directory table.
+PatientTriage.ai — Platform Runtime Bootstrap
+Ensures standard Anaconda/Python C runtime DLL paths are present on Windows PATH if running locally,
+without any hardcoded user paths.
 """
 
 import os
 import sys
+from pathlib import Path
+
+# Ensure root repository directory is on sys.path
+REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 if sys.platform == "win32":
     anaconda_dirs = [
@@ -12,17 +19,14 @@ if sys.platform == "win32":
         os.path.join(sys.prefix, "Library", "mingw-w64", "bin"),
         os.path.join(sys.prefix, "bin"),
         os.path.join(sys.prefix, "DLLs"),
-        r"C:\Users\Chittvan\anaconda3\Library\bin",
-        r"C:\Users\Chittvan\anaconda3\Library\mingw-w64\bin",
-        r"C:\Users\Chittvan\anaconda3\bin",
-        r"C:\Users\Chittvan\anaconda3\DLLs",
     ]
     valid_dirs = [d for d in anaconda_dirs if os.path.exists(d)]
-    os.environ["PATH"] = ";".join(valid_dirs) + ";" + os.environ.get("PATH", "")
-    
-    if hasattr(os, "add_dll_directory"):
-        for d in valid_dirs:
-            try:
-                os.add_dll_directory(d)
-            except Exception:
-                pass
+    if valid_dirs:
+        os.environ["PATH"] = ";".join(valid_dirs) + ";" + os.environ.get("PATH", "")
+        
+        if hasattr(os, "add_dll_directory"):
+            for d in valid_dirs:
+                try:
+                    os.add_dll_directory(d)
+                except Exception:
+                    pass

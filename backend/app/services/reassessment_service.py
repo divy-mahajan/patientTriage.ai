@@ -541,7 +541,7 @@ class ReassessmentService:
     @staticmethod
     def get_active_reassessment_alerts(db: Session) -> AlertsListResponse:
         """Scan active queue for deterioration and waiting-time reassessment triggers."""
-        patients = db.query(Patient).filter(Patient.status.in_(["waiting", "triaged"])).all()
+        patients = db.query(Patient).filter(Patient.status.in_(["waiting", "triaged", "assigned_bed", "admitted", "active"])).all()
         alerts: List[ReassessmentAlert] = []
 
         cap = hospital_service.get_capacity_state()

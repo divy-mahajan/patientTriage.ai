@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 
 
 class TreatmentCreate(BaseModel):
-    patient_id: str
+    patient_id: Optional[str] = None
     name: str
     type: str = Field(default="medication", description="infusion, medication, respiratory, oral")
     dose: str

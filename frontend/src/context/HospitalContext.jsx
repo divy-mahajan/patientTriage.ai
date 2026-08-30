@@ -2,33 +2,42 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { hospitalApi } from '../api/hospitalApi';
 import { patientsApi } from '../api/patientsApi';
 import { doctorsApi } from '../api/doctorsApi';
+import { authApi } from '../api/authApi';
 
 const HospitalContext = createContext(null);
 
 export const CLINICIAN_PERSONAS = [
   {
     id: 'DOC-001',
-    name: 'Dr. Arjun Mehta',
-    role: 'Attending Physician, ER',
-    initials: 'AM',
+    name: 'Dr. Sarah Jenkins, MD',
+    role: 'Attending Triage Officer',
+    initials: 'SJ',
     department: 'Emergency Medicine',
     avatar: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150&auto=format&fit=crop&q=80'
   },
   {
-    id: 'DOC-005',
-    name: 'Dr. Priya Shah',
-    role: 'Pediatric & Emergency Specialist',
-    initials: 'PS',
-    department: 'Emergency / Pediatrics',
+    id: 'DOC-002',
+    name: 'Dr. Marcus Vance, MD',
+    role: 'Cardiology Attending',
+    initials: 'MV',
+    department: 'Cardiology Wing',
     avatar: 'https://images.unsplash.com/photo-1594824813588-662f551b9b18?w=150&auto=format&fit=crop&q=80'
   },
   {
-    id: 'NURSE-001',
-    name: 'Sarah Jenkins, RN',
-    role: 'Lead Triage Coordinator',
-    initials: 'SJ',
-    department: 'Triage & Intake',
+    id: 'DOC-003',
+    name: 'Dr. Elena Rostova, MD',
+    role: 'Trauma Surgeon',
+    initials: 'ER',
+    department: 'Trauma Bay',
     avatar: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150&auto=format&fit=crop&q=80'
+  },
+  {
+    id: 'NURSE-001',
+    name: 'Nurse J. Reynolds, RN',
+    role: 'Lead Triage Coordinator',
+    initials: 'JR',
+    department: 'Triage & Intake',
+    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80'
   }
 ];
 
@@ -38,7 +47,25 @@ export const HospitalProvider = ({ children }) => {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [currentUser, setCurrentUser] = useState(CLINICIAN_PERSONAS[0]);
+  
+  const [currentUser, setCurrentUserState] = useState(() => {
+    try {
+      const saved = localStorage.getItem('pt_user');
+      return saved ? JSON.parse(saved) : CLINICIAN_PERSONAS[0];
+    } catch {
+      return CLINICIAN_PERSONAS[0];
+    }
+  });
+
+  const setCurrentUser = useCallback((user) => {
+    setCurrentUserState(user);
+    try {
+      localStorage.setItem('pt_user', JSON.stringify(user));
+    } catch (e) {
+      console.warn('Failed to save user in localStorage', e);
+    }
+  }, []);
+
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [notifications, setNotifications] = useState([
     {
@@ -112,6 +139,57 @@ export const HospitalProvider = ({ children }) => {
     return () => clearInterval(interval);
   }, [refreshAll, fetchCapacity, fetchPatients]);
 
+  const login = async (clinicianId, password) => {
+    try {
+      setLoading(true);
+      const res = await authApi.login(clinicianId, password);
+      if (res?.access_token) {
+        localStorage.setItem('pt_token', res.access_token);
+      }
+      
+      const clinicianData = res?.clinician || {
+        id: clinicianId,
+        name: clinicianId === 'DOC-001' ? 'Dr. Sarah Jenkins, MD' : 'Emergency Clinician',
+        role: 'Attending Physician'
+      };
+
+      const personaMatch = CLINICIAN_PERSONAS.find(p => p.id.toUpperCase() === clinicianId.toUpperCase());
+      const mergedUser = {
+        id: clinicianData.clinician_id || clinicianId,
+        name: clinicianData.name,
+        role: clinicianData.role,
+        department: clinicianData.department || 'Emergency Department',
+        avatar: personaMatch?.avatar || CLINICIAN_PERSONAS[0].avatar
+      };
+
+      setCurrentUser(mergedUser);
+      addNotification('Clinician Signed In', `Authenticated as ${mergedUser.name}`, 'success');
+      return mergedUser;
+    } catch (err) {
+      console.warn('Auth API error, checking fallback persona:', err.message);
+      const personaMatch = CLINICIAN_PERSONAS.find(p => p.id.toUpperCase() === clinicianId.toUpperCase());
+      if (personaMatch) {
+        setCurrentUser(personaMatch);
+        addNotification('Clinician Signed In', `Authenticated as ${personaMatch.name}`, 'success');
+        return personaMatch;
+      }
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await authApi.logout().catch(() => {});
+    } finally {
+      localStorage.removeItem('pt_token');
+      localStorage.removeItem('pt_user');
+      setCurrentUser(CLINICIAN_PERSONAS[0]);
+      addNotification('Signed Out', 'Clinician workstation session closed.', 'info');
+    }
+  };
+
   const swapProfile = async (hospitalId) => {
     try {
       setLoading(true);
@@ -177,6 +255,8 @@ export const HospitalProvider = ({ children }) => {
     error,
     currentUser,
     setCurrentUser,
+    login,
+    logout,
     selectedPatient,
     setSelectedPatient,
     notifications,

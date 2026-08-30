@@ -3,6 +3,7 @@ PatientTriage.ai — Main FastAPI Application Entrypoint
 """
 
 from contextlib import asynccontextmanager
+import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -48,10 +49,11 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS configuration
+# CORS configuration supporting local dev and Vercel preview/production domains
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -81,3 +83,7 @@ def health_check():
         "total_beds": capacity.get("summary", {}).get("total_beds", 0),
         "available_beds": capacity.get("summary", {}).get("available_beds", 0)
     }
+
+
+if __name__ == "__main__":
+    uvicorn.run("backend.app.main:app", host=settings.host, port=settings.port, reload=settings.debug)

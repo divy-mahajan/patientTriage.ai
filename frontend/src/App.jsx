@@ -9,12 +9,17 @@ import BedMapPage from './pages/BedMapPage';
 import DoctorsPage from './pages/DoctorsPage';
 import SurgePage from './pages/SurgePage';
 import AuditPage from './pages/AuditPage';
+import LoginPage from './pages/LoginPage';
 
 export const App = () => {
   return (
     <HospitalProvider>
       <BrowserRouter>
         <Routes>
+          {/* Standalone Login Screen */}
+          <Route path="/login" element={<LoginPage />} />
+
+          {/* Main App Layout */}
           <Route path="/" element={<AppLayout />}>
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<DashboardPage />} />

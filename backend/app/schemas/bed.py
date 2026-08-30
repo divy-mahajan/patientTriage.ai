@@ -9,9 +9,9 @@ from pydantic import BaseModel, Field
 
 class BedRecommendRequest(BaseModel):
     patient_id: Optional[str] = None
-    predicted_triage_level: int = Field(..., ge=1, le=5)
-    is_high_risk: bool = Field(...)
-    chief_complaint: str = Field(...)
+    predicted_triage_level: int = Field(3, ge=1, le=5)
+    is_high_risk: bool = Field(False)
+    chief_complaint: Optional[str] = Field("")
     symptoms: Optional[str] = Field("")
     medical_history: Optional[str] = Field("")
     required_equipment: Optional[List[str]] = Field(default_factory=list)

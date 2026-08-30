@@ -11,6 +11,7 @@ Loads trained Logistic Regression triage model artifacts and produces:
 """
 
 import os
+from pathlib import Path
 from typing import Dict, List, Any, Optional
 import numpy as np
 import pandas as pd
@@ -25,6 +26,7 @@ from model.features import (
     NUMERICAL_COLS
 )
 
+DEFAULT_ARTIFACT_PATH = str(Path(__file__).resolve().parent / "artifacts" / "triage_model.joblib")
 
 ESI_NAMES = {
     1: "Level 1 — Resuscitation",
@@ -44,19 +46,70 @@ SEVERITY_WEIGHTS = {
 }
 
 
+def find_model_artifact(custom_path: Optional[str] = None) -> Path:
+    """
+    Locate the triage model artifact across deployment environments:
+    1. Explicit custom_path if passed (must exist)
+    2. PATIENT_TRIAGE_MODEL_PATH environment variable (if set and exists)
+    3. Package-relative path (model/artifacts/triage_model.joblib)
+    4. Working directory relative paths
+    """
+    if custom_path:
+        p = Path(custom_path)
+        if not p.is_file():
+            raise FileNotFoundError(
+                f"Critical ML Deployment Error: Specified model artifact '{custom_path}' not found on filesystem."
+            )
+        return p.resolve()
+
+    candidates = []
+    if os.environ.get("PATIENT_TRIAGE_MODEL_PATH"):
+        candidates.append(Path(os.environ["PATIENT_TRIAGE_MODEL_PATH"]))
+
+    # Primary deployment path: relative to predictor.py file location
+    primary_path = Path(__file__).resolve().parent / "artifacts" / "triage_model.joblib"
+    candidates.append(primary_path)
+
+    # Working directory fallbacks
+    candidates.append(Path.cwd() / "model" / "artifacts" / "triage_model.joblib")
+    candidates.append(Path.cwd() / "artifacts" / "triage_model.joblib")
+
+    for p in candidates:
+        if p.exists() and p.is_file():
+            return p.resolve()
+
+    checked_str = "\n  - ".join(str(c) for c in candidates)
+    raise FileNotFoundError(
+        f"Critical ML Deployment Error: Required model artifact 'triage_model.joblib' was not found.\n"
+        f"Attempted candidate search paths:\n  - {checked_str}\n"
+        f"Remediation: Ensure 'model/artifacts/triage_model.joblib' is tracked and present, "
+        f"or set the 'PATIENT_TRIAGE_MODEL_PATH' environment variable."
+    )
+
+
 class TriagePredictor:
     """
     Inference and Explainability engine for PatientTriage.ai.
     """
-    def __init__(self, artifact_path: str = "model/artifacts/triage_model.joblib"):
-        if not os.path.exists(artifact_path):
-            raise FileNotFoundError(f"Model artifact not found at: {artifact_path}. Run model/train.py first.")
+    def __init__(self, artifact_path: Optional[str] = None):
+        self.artifact_path = find_model_artifact(artifact_path)
 
-        artifact = joblib.load(artifact_path)
+        try:
+            artifact = joblib.load(self.artifact_path)
+        except Exception as e:
+            raise RuntimeError(
+                f"Failed to deserialize ML model artifact from '{self.artifact_path}': {e}"
+            ) from e
+
+        if "model" not in artifact or "feature_pipeline" not in artifact:
+            raise ValueError(
+                f"Corrupted model artifact at '{self.artifact_path}'. Expected dictionary keys 'model' and 'feature_pipeline'."
+            )
+
         self.model = artifact["model"]
         self.pipeline = artifact["feature_pipeline"]
-        self.feature_names = artifact["feature_names"]
-        self.classes = artifact["classes"]
+        self.feature_names = artifact.get("feature_names", FEATURE_COLUMNS)
+        self.classes = artifact.get("classes", np.array([1, 2, 3, 4, 5]))
         self.metadata = artifact.get("metadata", {})
 
     def _format_factor_explanation(

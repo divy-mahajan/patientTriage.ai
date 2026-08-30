@@ -1,27 +1,26 @@
 # Python
 __pycache__/
 *.py[cod]
+.pytest_cache/
 .venv/
 venv/
 
-# Secrets
+# Environment / secrets
 .env
 .env.*
 !.env.example
 
-# Node
-node_modules/
-dist/
-build/
-
-# SQLite
+# Database
 *.db
 *.sqlite
 *.sqlite3
 
-# IDE
-.vscode/
-.idea/
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# ML / temporary files
+*.log
 
 # OS
 .DS_Store
