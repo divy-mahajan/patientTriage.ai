@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   FileClock,
   Search,
@@ -12,7 +12,8 @@ import {
   Sparkles,
   FileSpreadsheet,
   Calendar,
-  ShieldCheck
+  ShieldCheck,
+  Activity
 } from 'lucide-react';
 import { useHospital } from '../context/HospitalContext';
 import { auditApi } from '../api/auditApi';
@@ -24,90 +25,119 @@ export const AuditPage = () => {
   const [searchPatientId, setSearchPatientId] = useState('');
   const [selectedActionType, setSelectedActionType] = useState('all');
   const [liveLogs, setLiveLogs] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const loadAuditLogs = async () => {
+      setIsLoading(true);
       try {
-        const res = await auditApi.listLogs();
-        if (res?.logs?.length > 0) {
+        const res = await auditApi.listLogs({ limit: 100 });
+        if (res?.logs && Array.isArray(res.logs)) {
           setLiveLogs(res.logs);
         }
       } catch (err) {
         console.warn('Could not fetch live audit logs from backend, using synthesized stream:', err.message);
+      } finally {
+        setIsLoading(false);
       }
     };
     loadAuditLogs();
   }, []);
 
-  // Synthesize rich audit timeline events from stored patient workflows
+  // Merge live backend logs with synthesized patient workflow timeline
   const auditEvents = useMemo(() => {
     const events = [];
 
+    // 1. Process Live Database Logs
+    if (liveLogs.length > 0) {
+      liveLogs.forEach((log) => {
+        let icon = Activity;
+        let color = 'bg-blue-600 text-white';
+        let actionType = log.event_type || 'System Event';
+
+        if (log.event_type === 'TRIAGE_ASSESSMENT') {
+          icon = Sparkles;
+          color = 'bg-purple-600 text-white';
+          actionType = 'AI Risk Prediction';
+        } else if (log.event_type === 'CLINICIAN_OVERRIDE') {
+          icon = CheckCircle2;
+          color = 'bg-amber-600 text-white';
+          actionType = 'Clinician Override';
+        } else if (log.event_type === 'BED_ASSIGNED') {
+          icon = Bed;
+          color = 'bg-emerald-600 text-white';
+          actionType = 'Bed Allocation';
+        } else if (log.event_type === 'BED_RELEASED') {
+          icon = Bed;
+          color = 'bg-slate-700 text-white';
+          actionType = 'Bed Discharge & Cleaning';
+        } else if (log.event_type === 'SURGE_STATUS_CHANGED') {
+          icon = AlertTriangle;
+          color = 'bg-red-600 text-white';
+          actionType = 'Surge Status Escalation';
+        } else if (log.event_type === 'VITAL_SIGNS_UPDATED') {
+          icon = Activity;
+          color = 'bg-blue-500 text-white';
+          actionType = 'Vital Signs Reassessment';
+        }
+
+        const patientName = patients.find(p => p.patient_id === log.patient_id)?.full_name || 'Emergency Patient';
+        const timestamp = new Date(log.timestamp || Date.now());
+
+        events.push({
+          id: `LOG-${log.id || Math.random().toString(36).substr(2, 9)}`,
+          patientId: log.patient_id || 'SYSTEM',
+          patientName: patientName,
+          type: actionType,
+          timestamp: timestamp,
+          actor: log.actor || 'System / Clinician',
+          details: log.reason || (log.new_state ? JSON.stringify(log.new_state) : 'Action recorded in audit log.'),
+          icon: icon,
+          color: color,
+          level: log.new_state?.predicted_triage_level || log.new_state?.override_level || null
+        });
+      });
+    }
+
+    // 2. Synthesize baseline patient events if not duplicated
     patients.forEach((p, idx) => {
       const baseTime = new Date(p.arrival_timestamp || p.created_at || (Date.now() - (idx + 1) * 3600000));
+      const hasIntakeInLogs = events.some(e => e.patientId === p.patient_id && e.type === 'Intake Registration');
 
-      // 1. Patient Intake Event
-      events.push({
-        id: `EVT-INTAKE-${p.patient_id}`,
-        patientId: p.patient_id,
-        patientName: p.full_name,
-        type: 'Intake Registration',
-        timestamp: baseTime,
-        actor: 'Sarah Jenkins, RN (Triage Nurse)',
-        details: `Registered via ${p.arrival_mode}. Vitals logged (HR ${p.heart_rate}, BP ${p.sbp}/${p.dbp}, SpO2 ${p.spo2}%, Temp ${p.temperature_c}°C). Chief complaint: "${p.chief_complaint}"`,
-        icon: User,
-        color: 'bg-blue-500 text-white'
-      });
-
-      // 2. AI Scoring Event
-      const scoreTime = new Date(baseTime.getTime() + 45000); // 45s later
-      events.push({
-        id: `EVT-SCORE-${p.patient_id}`,
-        patientId: p.patient_id,
-        patientName: p.full_name,
-        type: 'AI Risk Prediction',
-        timestamp: scoreTime,
-        actor: 'PatientTriage.ai Interpretable ML Engine',
-        details: `Calculated ESI Level ${p.predicted_triage_level || 3} priority score. Evaluated physiological contributions (SpO2 ${p.spo2}%, SBP ${p.sbp} mmHg, HR ${p.heart_rate} bpm).`,
-        icon: Sparkles,
-        color: 'bg-purple-600 text-white',
-        level: p.predicted_triage_level || 3
-      });
-
-      // 3. Clinician Decision
-      const decisionTime = new Date(baseTime.getTime() + 120000); // 2m later
-      events.push({
-        id: `EVT-DECISION-${p.patient_id}`,
-        patientId: p.patient_id,
-        patientName: p.full_name,
-        type: 'Clinician Triage Validation',
-        timestamp: decisionTime,
-        actor: 'Dr. Priya Shah, MD (Triage Attending)',
-        details: `Validated ESI Level ${p.predicted_triage_level || 3} acuity. Order placed for standard diagnostic workup.`,
-        icon: CheckCircle2,
-        color: 'bg-emerald-600 text-white'
-      });
-
-      // 4. Bed Routing Event (if assigned)
-      if (p.status === 'assigned_bed') {
-        const bedTime = new Date(baseTime.getTime() + 300000); // 5m later
+      if (!hasIntakeInLogs) {
+        // Patient Intake Event
         events.push({
-          id: `EVT-BED-${p.patient_id}`,
+          id: `EVT-INTAKE-${p.patient_id}`,
           patientId: p.patient_id,
           patientName: p.full_name,
-          type: 'Bed Allocation',
-          timestamp: bedTime,
-          actor: 'Automated Bed Affinity Engine',
-          details: `Bed routed in ${capacity?.name || "St. Mary's General"}. Status set to Occupied.`,
-          icon: Bed,
-          color: 'bg-slate-700 text-white'
+          type: 'Intake Registration',
+          timestamp: baseTime,
+          actor: 'Sarah Jenkins, RN (Triage Nurse)',
+          details: `Registered via ${p.arrival_mode}. Vitals logged (HR ${p.heart_rate}, BP ${p.sbp}/${p.dbp}, SpO2 ${p.spo2}%, Temp ${p.temperature_c}°C). Chief complaint: "${p.chief_complaint}"`,
+          icon: User,
+          color: 'bg-blue-500 text-white'
+        });
+
+        // AI Scoring Event
+        const scoreTime = new Date(baseTime.getTime() + 45000);
+        events.push({
+          id: `EVT-SCORE-${p.patient_id}`,
+          patientId: p.patient_id,
+          patientName: p.full_name,
+          type: 'AI Risk Prediction',
+          timestamp: scoreTime,
+          actor: 'PatientTriage.ai Interpretable ML Engine',
+          details: `Calculated ESI Level ${p.predicted_triage_level || 3} priority score. Evaluated physiological contributions (SpO2 ${p.spo2}%, SBP ${p.sbp} mmHg, HR ${p.heart_rate} bpm).`,
+          icon: Sparkles,
+          color: 'bg-purple-600 text-white',
+          level: p.predicted_triage_level || 3
         });
       }
     });
 
     // Sort by timestamp descending
     return events.sort((a, b) => b.timestamp - a.timestamp);
-  }, [patients, capacity]);
+  }, [liveLogs, patients]);
 
   // Filtered Events
   const filteredEvents = useMemo(() => {
@@ -161,9 +191,9 @@ export const AuditPage = () => {
         <button
           type="button"
           onClick={handleExportCSV}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition shadow-2xs"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition shadow-2xs cursor-pointer"
         >
-          <Download className="h-4 w-4" />
+          <Download className="h-4 w-4 text-slate-500" />
           Export Audit Trail (CSV)
         </button>
       </div>
@@ -187,13 +217,14 @@ export const AuditPage = () => {
           <select
             value={selectedActionType}
             onChange={(e) => setSelectedActionType(e.target.value)}
-            className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 focus:outline-hidden"
+            className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 focus:outline-hidden cursor-pointer"
           >
             <option value="all">All Action Types</option>
             <option value="Intake">Intake Registration</option>
             <option value="AI">AI Risk Prediction</option>
-            <option value="Validation">Clinician Validation / Override</option>
-            <option value="Bed">Bed Allocation</option>
+            <option value="Override">Clinician Override / Reassessment</option>
+            <option value="Bed">Bed Allocation & Cleaning</option>
+            <option value="Surge">Surge Status Escalation</option>
           </select>
         </div>
       </div>

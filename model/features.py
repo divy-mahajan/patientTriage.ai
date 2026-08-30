@@ -97,7 +97,40 @@ DEFAULT_VITALS = {
     "age": 40.0
 }
 
-# Known Clinical Syndrome Keyword Dictionaries
+# Known Clinical Syndrome & Symptom Lexicons
+KNOWN_CLINICAL_LEXICON = [
+    # Cardiac
+    "chest pain", "angina", "substernal", "myocardial", "cardiac arrest",
+    "heart attack", "crushing chest", "coronary", "palpitation", "arrhythmia",
+    # Respiratory
+    "shortness of breath", "dyspnea", "wheezing", "stridor", "asthma",
+    "asphyxiation", "respiratory distress", "suffocating", "hypoxemia", "copd",
+    "cough", "sputum", "tachypnea",
+    # Neurological
+    "stroke", "hemiplegia", "hemiparesis", "facial droop", "slurred speech",
+    "syncope", "unconscious", "unresponsive", "seizure", "altered mental",
+    "aphasia", "dysarthria", "focal weakness", "coma", "confusion", "headache",
+    "dizziness", "vertigo",
+    # Trauma
+    "trauma", "motor vehicle", "collision", "fall", "fracture", "hemorrhage",
+    "laceration", "wound", "gunshot", "stab", "polytrauma", "active bleeding",
+    "injury", "burn", "contusion", "head strike",
+    # Sepsis & Infection
+    "sepsis", "high fever", "chills", "rigors", "pyelonephritis", "bacteremia",
+    "systemic infection", "urosepsis", "febrile", "abscess", "cellulitis",
+    "uti", "urinary tract infection", "infection",
+    # Abdominal / GI
+    "abdominal pain", "flank pain", "renal colic", "vomiting", "hematemesis",
+    "melena", "acute abdomen", "guarding", "rebound tenderness", "appendicitis",
+    "right lower quadrant", "left lower quadrant", "right upper quadrant",
+    "epigastric pain", "nausea", "diarrhea", "belly pain", "cramping", "constipation",
+    # Mild / Low Acuity
+    "suture removal", "minor rash", "dressing change", "earache", "sore throat",
+    "mild sprain", "twisted ankle", "prescription refill", "insect bite", "abrasion",
+    "cold symptoms", "congestion", "mild cough", "superficial cut", "routine",
+    "itching", "pruritus", "minor burn", "ear pain", "dental pain", "weakness", "fatigue"
+]
+
 KNOWN_CHEST_PAIN_KEYWORDS = [
     "chest pain", "angina", "substernal", "myocardial", "cardiac arrest",
     "heart attack", "crushing chest", "coronary", "palpitation"
@@ -126,13 +159,8 @@ KNOWN_SEPSIS_KEYWORDS = [
 
 KNOWN_ABDOMINAL_KEYWORDS = [
     "abdominal pain", "flank pain", "renal colic", "vomiting", "hematemesis",
-    "melena", "acute abdomen", "guarding", "rebound tenderness", "appendicitis"
-]
-
-KNOWN_LOW_ACUITY_KEYWORDS = [
-    "suture removal", "minor rash", "dressing change", "earache", "sore throat",
-    "mild sprain", "twisted ankle", "prescription refill", "insect bite", "abrasion",
-    "cold symptoms", "congestion", "mild cough", "superficial cut", "routine"
+    "melena", "acute abdomen", "guarding", "rebound tenderness", "appendicitis",
+    "right lower quadrant", "left lower quadrant", "epigastric", "belly pain", "nausea"
 ]
 
 
@@ -155,17 +183,7 @@ def classify_input_text(text: str) -> str:
         return "MISSING"
 
     t = str(text).lower()
-    all_known_keywords = (
-        KNOWN_CHEST_PAIN_KEYWORDS +
-        KNOWN_RESPIRATORY_KEYWORDS +
-        KNOWN_STROKE_NEURO_KEYWORDS +
-        KNOWN_TRAUMA_KEYWORDS +
-        KNOWN_SEPSIS_KEYWORDS +
-        KNOWN_ABDOMINAL_KEYWORDS +
-        KNOWN_LOW_ACUITY_KEYWORDS
-    )
-
-    if any(kw in t for kw in all_known_keywords):
+    if any(kw in t for kw in KNOWN_CLINICAL_LEXICON):
         return "KNOWN"
     
     # Text is provided but does not match any recognized clinical syndrome lexicon

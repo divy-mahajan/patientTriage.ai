@@ -8,9 +8,11 @@ import {
   Stethoscope,
   AlertOctagon,
   FileClock,
-  ShieldCheck,
-  Building2,
-  Activity
+  Activity,
+  ChevronLeft,
+  ChevronRight,
+  PanelLeftClose,
+  PanelLeftOpen
 } from 'lucide-react';
 import { useHospital } from '../../context/HospitalContext';
 
@@ -24,54 +26,90 @@ const NAV_ITEMS = [
   { path: '/audit', label: 'Clinical Audit Log', icon: FileClock },
 ];
 
-export const SideNavBar = () => {
+export const SideNavBar = ({ isCollapsed = false, onToggle }) => {
   const { capacity, currentUser } = useHospital();
   const isSurgeActive = capacity?.surge_status && capacity.surge_status !== 'normal';
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-30 w-64 border-r border-clinical-border bg-white flex flex-col justify-between">
-      {/* Brand Header */}
+    <aside
+      className={`fixed inset-y-0 left-0 z-30 border-r border-clinical-border bg-white flex flex-col justify-between transition-all duration-200 ease-in-out ${
+        isCollapsed ? 'w-[72px]' : 'w-64'
+      }`}
+    >
+      {/* Top Header & Nav Items */}
       <div>
-        <div className="flex h-16 items-center gap-3 border-b border-clinical-border px-5 bg-white">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-clinical-primary-container text-white shadow-sm">
-            <Activity className="h-5 w-5" />
-          </div>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-base font-extrabold tracking-tight text-clinical-text-primary">
-                PatientTriage<span className="text-clinical-primary-container">.ai</span>
-              </span>
+        {/* Brand Header */}
+        <div
+          className={`flex h-16 items-center border-b border-clinical-border bg-white transition-all duration-200 ${
+            isCollapsed ? 'justify-center px-2' : 'justify-between px-4'
+          }`}
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-clinical-primary-container text-white shadow-sm">
+              <Activity className="h-5 w-5" />
             </div>
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 block">
-              Clinical Precision
-            </span>
+            {!isCollapsed && (
+              <div className="min-w-0 truncate">
+                <span className="text-base font-extrabold tracking-tight text-clinical-text-primary block truncate">
+                  PatientTriage<span className="text-clinical-primary-container">.ai</span>
+                </span>
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 block -mt-0.5">
+                  Clinical Precision
+                </span>
+              </div>
+            )}
           </div>
+
+          {/* Toggle Button */}
+          <button
+            type="button"
+            onClick={onToggle}
+            title={isCollapsed ? 'Expand Navigation Sidebar' : 'Collapse Navigation Sidebar'}
+            className={`rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition cursor-pointer ${
+              isCollapsed ? 'hidden' : 'block'
+            }`}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
         </div>
 
-        {/* Live Hospital Profile Pill */}
-        <div className="p-3">
-          <div className="rounded-lg border border-clinical-border bg-slate-50 p-2.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                Active Hospital
-              </span>
-              <span className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-bold ${
-                isSurgeActive ? 'bg-red-100 text-red-800 animate-pulse' : 'bg-emerald-100 text-emerald-800'
-              }`}>
-                {isSurgeActive ? 'SURGE ACTIVE' : 'NORMAL'}
-              </span>
+        {/* Live Hospital Profile Pill (Expanded Only) */}
+        {!isCollapsed ? (
+          <div className="p-3">
+            <div className="rounded-lg border border-clinical-border bg-slate-50 p-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                  Active Hospital
+                </span>
+                <span
+                  className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-bold ${
+                    isSurgeActive ? 'bg-red-100 text-red-800 animate-pulse' : 'bg-emerald-100 text-emerald-800'
+                  }`}
+                >
+                  {isSurgeActive ? 'SURGE ACTIVE' : 'NORMAL'}
+                </span>
+              </div>
+              <p className="mt-1 text-xs font-bold text-slate-900 truncate">
+                {capacity?.name || "St. Mary's General"}
+              </p>
+              <p className="text-[10px] text-slate-500 font-medium truncate">
+                {capacity?.emergency_level || 'Level 1 Trauma Center'}
+              </p>
             </div>
-            <p className="mt-1 text-xs font-bold text-slate-900 truncate">
-              {capacity?.name || "St. Mary's General"}
-            </p>
-            <p className="text-[10px] text-slate-500 font-medium truncate">
-              {capacity?.emergency_level || "Level 1 Trauma Center"}
-            </p>
           </div>
-        </div>
+        ) : (
+          <div className="py-3 flex justify-center">
+            <span
+              title={`Active Hospital: ${capacity?.name || "St. Mary's General"} (${isSurgeActive ? 'SURGE' : 'NORMAL'})`}
+              className={`h-2.5 w-2.5 rounded-full ${
+                isSurgeActive ? 'bg-red-600 animate-ping' : 'bg-emerald-500'
+              }`}
+            />
+          </div>
+        )}
 
         {/* Navigation Links */}
-        <nav className="px-3 space-y-1">
+        <nav className={`space-y-1 ${isCollapsed ? 'px-2' : 'px-3'}`}>
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             return (
@@ -79,24 +117,40 @@ export const SideNavBar = () => {
                 key={item.path}
                 to={item.path}
                 className={({ isActive }) =>
-                  `flex items-center justify-between rounded-lg px-3 py-2.5 text-xs font-semibold transition-colors ${
+                  `relative group flex items-center rounded-lg transition-colors ${
+                    isCollapsed
+                      ? 'justify-center p-2.5'
+                      : 'justify-between px-3 py-2.5 text-xs font-semibold'
+                  } ${
                     isActive
-                      ? 'bg-blue-50/80 text-clinical-primary-container font-bold border border-blue-200/80 shadow-xs'
+                      ? 'bg-blue-50/90 text-clinical-primary-container font-bold border border-blue-200/80 shadow-xs'
                       : 'text-slate-700 hover:bg-slate-100/80 hover:text-slate-900'
                   }`
                 }
               >
-                <div className="flex items-center gap-2.5">
+                <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-2.5'}`}>
                   <Icon className="h-4 w-4 shrink-0" />
-                  <span>{item.label}</span>
+                  {!isCollapsed && <span>{item.label}</span>}
                 </div>
-                {item.alertBadge && isSurgeActive && (
+
+                {!isCollapsed && item.alertBadge && isSurgeActive && (
                   <span className="flex h-2 w-2 rounded-full bg-red-600 animate-ping" />
                 )}
-                {item.badge && !isSurgeActive && (
+
+                {!isCollapsed && item.badge && !isSurgeActive && (
                   <span className="rounded bg-slate-200 px-1.5 py-0.2 text-[9px] font-mono font-bold text-slate-700">
                     {item.badge}
                   </span>
+                )}
+
+                {/* Floating Tooltip when Collapsed */}
+                {isCollapsed && (
+                  <div className="absolute left-full ml-3 z-50 hidden group-hover:flex items-center">
+                    <div className="rounded-md bg-slate-900 px-2.5 py-1 text-[11px] font-bold text-white shadow-md whitespace-nowrap">
+                      {item.label}
+                      {item.badge && ` (${item.badge})`}
+                    </div>
+                  </div>
                 )}
               </NavLink>
             );
@@ -104,23 +158,42 @@ export const SideNavBar = () => {
         </nav>
       </div>
 
-      {/* Footer / User Persona Pill */}
-      <div className="border-t border-clinical-border p-3 bg-slate-50/70">
-        <div className="flex items-center gap-3">
-          <img
-            src={currentUser.avatar}
-            alt={currentUser.name}
-            className="h-8 w-8 rounded-full object-cover border border-slate-300 shadow-2xs"
-          />
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold text-clinical-text-primary truncate">
-              {currentUser.name}
-            </p>
-            <p className="text-[10px] text-slate-500 truncate">
-              {currentUser.role}
-            </p>
+      {/* Footer / User Persona Pill & Expand button when collapsed */}
+      <div className="border-t border-clinical-border bg-slate-50/70 p-2.5">
+        {isCollapsed ? (
+          <div className="flex flex-col items-center gap-2">
+            <img
+              src={currentUser.avatar}
+              alt={currentUser.name}
+              title={`${currentUser.name} (${currentUser.role})`}
+              className="h-8 w-8 rounded-full object-cover border border-slate-300 shadow-2xs"
+            />
+            <button
+              type="button"
+              onClick={onToggle}
+              title="Expand Navigation Sidebar"
+              className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition cursor-pointer"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
           </div>
-        </div>
+        ) : (
+          <div className="flex items-center gap-3">
+            <img
+              src={currentUser.avatar}
+              alt={currentUser.name}
+              className="h-8 w-8 rounded-full object-cover border border-slate-300 shadow-2xs shrink-0"
+            />
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-bold text-clinical-text-primary truncate">
+                {currentUser.name}
+              </p>
+              <p className="text-[10px] text-slate-500 truncate">
+                {currentUser.role}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </aside>
   );

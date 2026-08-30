@@ -375,24 +375,51 @@ export const AssessmentPage = () => {
 
         {/* Card 2: Data Quality & Uncertainty */}
         <div className="rounded-xl border border-clinical-border bg-white p-4 shadow-2xs space-y-2">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
-            Data Quality & Completeness
-          </span>
-          <div className="flex items-center gap-2 pt-1">
-            {assessment?.data_quality_label === 'Complete' ? (
-              <ShieldCheck className="h-5 w-5 text-emerald-600" />
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+              Data Quality & Uncertainty
+            </span>
+            {assessment?.is_unseen_input && (
+              <span className="text-[9px] font-bold uppercase bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.5 rounded">
+                Unseen Input
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2 pt-0.5">
+            {assessment?.data_quality === 'Complete' && !assessment?.is_unseen_input ? (
+              <ShieldCheck className="h-5 w-5 text-emerald-600 shrink-0" />
             ) : (
-              <ShieldAlert className="h-5 w-5 text-amber-600" />
+              <ShieldAlert className="h-5 w-5 text-amber-600 shrink-0" />
             )}
             <span className="font-bold text-sm text-slate-900">
-              {assessment?.data_quality_label || 'Complete Clinical Data'}
+              {assessment?.data_quality || 'Complete'} Quality
             </span>
           </div>
           <p className="text-[11px] text-slate-600 leading-relaxed">
-            {assessment?.clinician_review_required
-              ? 'Ambiguous complaint or limited history detected. Clinician review required.'
-              : 'All 25 model input features physiologically validated.'}
+            {assessment?.uncertainty_reason ||
+             assessment?.review_reason ||
+             (assessment?.needs_clinician_review
+               ? 'Clinical review recommended to verify baseline presentation.'
+               : 'All input physiological vitals and clinical features verified.')}
           </p>
+          {assessment?.input_classification && (
+            <div className="flex flex-wrap gap-1 pt-1">
+              {Object.entries(assessment.input_classification).map(([key, val]) => (
+                <span
+                  key={key}
+                  className={`text-[9px] px-1.5 py-0.5 rounded font-mono font-bold border ${
+                    val === 'KNOWN'
+                      ? 'bg-slate-50 text-slate-700 border-slate-200'
+                      : val === 'UNKNOWN/UNSEEN'
+                      ? 'bg-amber-50 text-amber-800 border-amber-200'
+                      : 'bg-red-50 text-red-700 border-red-200'
+                  }`}
+                >
+                  {key.replace('_', ' ')}: {val}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Card 3: Monitoring & Reassessment Timer */}
@@ -543,7 +570,7 @@ export const AssessmentPage = () => {
       )}
 
       {/* Explainability Factors */}
-      {assessment?.explainability_factors && assessment.explainability_factors.length > 0 && (
+      {((assessment?.top_factors && assessment.top_factors.length > 0) || (assessment?.explainability_factors && assessment.explainability_factors.length > 0)) && (
         <div className="rounded-xl border border-clinical-border bg-white p-4 shadow-2xs space-y-3">
           <div className="flex items-center gap-2 border-b border-clinical-border pb-2">
             <Sparkles className="h-4 w-4 text-amber-600" />
@@ -551,14 +578,35 @@ export const AssessmentPage = () => {
               Explainability & Key Decision Factors
             </h3>
           </div>
-          <ul className="space-y-1.5 text-xs text-slate-700">
-            {assessment.explainability_factors.map((factor, i) => (
-              <li key={i} className="flex items-start gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-blue-600 mt-1.5 shrink-0" />
-                <span>{factor}</span>
-              </li>
-            ))}
-          </ul>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
+            {(assessment?.top_factors || assessment.explainability_factors).map((factor, i) => {
+              if (typeof factor === 'string') {
+                return (
+                  <div key={i} className="p-2.5 rounded-lg border border-slate-200 bg-slate-50 text-xs">
+                    <span className="font-bold text-slate-900 block">{factor}</span>
+                  </div>
+                );
+              }
+              return (
+                <div key={i} className="p-2.5 rounded-lg border border-slate-200 bg-slate-50 text-xs space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-slate-900">{factor.factor}</span>
+                    <span className={`text-[9px] font-bold uppercase px-1.5 py-0.2 rounded border ${
+                      factor.severity_impact === 'critical'
+                        ? 'bg-red-50 text-red-800 border-red-200'
+                        : factor.severity_impact === 'high'
+                        ? 'bg-amber-50 text-amber-800 border-amber-200'
+                        : 'bg-blue-50 text-blue-800 border-blue-200'
+                    }`}>
+                      {factor.severity_impact}
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-slate-600 font-medium">{factor.detail}</div>
+                  <div className="text-[10px] text-slate-500 font-mono">Weight: +{factor.contribution}</div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
